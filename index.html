@@ -9,13 +9,31 @@
     <script src="http://d3js.org/d3.v3.js"></script>
   </head>
   <body>
-    <div id="demo" style="text-align: center;">
-      <p class="value">Hint: You can click on the dots.</p>
+    <div id="textSelectorContainer">
+      <select id="textSelector"></select>
+    </div>
+    <div id="scatterPlot" style="text-align: center;"></div>
+      <div id="textContainer">
+        <p id="textLeft">Hint: You can click on the dots.</p>
+        <p id="textRight">Right text.</p>
+      </div>
     </div>  
  </body>
 
 <script>
+// populate dropdown with json options
+$.getJSON( "json/dropdown.json", function( data ) {
+  $.each(data, function (key, value) {
+    $("#textSelector").append($('<option></option>').val(value.id).html(value.name));
+  });
+});
 
+// event handler for change of dropdown
+$('#textSelector').change(function () {
+  console.log($(this).val());
+});
+
+// d3 plot
 var format = d3.time.format("%a %b %d %Y")
 var amountFn = function(d) { return d.amount }
 var dateFn = function(d) { return format.parse(d.created_at) }
@@ -44,7 +62,7 @@ JSONData = [
     .range([180, 10])
     .domain(d3.extent(data, amountFn))
 
-  var svg = d3.select("#demo").append("svg:svg")
+  var svg = d3.select("#scatterPlot").append("svg:svg")
     .attr("width", w) // 300 for plot + room for legend
     .attr("height", h)
 
@@ -68,7 +86,8 @@ JSONData = [
    .attr("style", "cursor: pointer;")
    .attr("stroke", function(d) {return colors(d.id)})
    .on("click", function(d) {
-      d3.select("#demo .value").text("Date: " + d.created_at + " amount: " + d.amount)
+      d3.select("#textLeft").text("Date: " + d.created_at + " amount: " + d.amount)
+      d3.select("#textRight").text("Date: " + d.created_at)
    });
  
   // build legend 

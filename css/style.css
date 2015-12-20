@@ -13,3 +13,34 @@ svg circle:active {
   stroke: #45D3C7;
 }
 
+#textContainer {
+  width: 800px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+#textLeft {
+  width: 400px;
+  height: 400px;
+  float: left;
+}
+
+#textRight {
+  width: 400px;
+  height: 400px;
+  float: left;
+}
+
+#textSelector {
+  display: block;
+  margin: 0 auto;
+}
+
+#textSelectorContainer {
+  padding: 10px 0px 30px 0px;
+}
+
+/* add offset to account for scatterplot legend */ 
+#scatterPlot {
+  padding: 0px 0px 0px 100px
+}
