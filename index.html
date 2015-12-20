@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/style.css"></style>
+
+    <meta charset="UTF-8">
+    <title>Visualizing Text Reuse</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="http://d3js.org/d3.v3.js"></script>
+  </head>
+  <body>
+    <div id="demo" style="text-align: center;">
+      <p class="value">Hint: You can click on the dots.</p>
+    </div>  
+ </body>
+
+<script>
+
+var format = d3.time.format("%a %b %d %Y")
+var amountFn = function(d) { return d.amount }
+var dateFn = function(d) { return format.parse(d.created_at) }
+JSONData = [
+  { "id": 3, "created_at": "Sun May 05 2013", "amount": 12000},
+  { "id": 1, "created_at": "Mon May 13 2013", "amount": 2000},
+  { "id": 2, "created_at": "Thu Jun 06 2013", "amount": 17000},
+  { "id": 4, "created_at": "Thu May 09 2013", "amount": 15000},
+  { "id": 5, "created_at": "Mon Jul 01 2013", "amount": 16000}
+];
+
+(function() {
+  var data = JSONData.slice();
+  var colors = d3.scale.category20();
+
+  //Width and height
+  var w = 400;
+  var h = 200;
+  scatterWidth = 300;
+
+  var x = d3.time.scale()
+    .range([10, 280])
+    .domain(d3.extent(data, dateFn))
+
+  var y = d3.scale.linear()
+    .range([180, 10])
+    .domain(d3.extent(data, amountFn))
+
+  var svg = d3.select("#demo").append("svg:svg")
+    .attr("width", w) // 300 for plot + room for legend
+    .attr("height", h)
+
+// select a subregion of the svg to create a dropbox
+  var graphBox = svg.append("rect")
+     .attr("class", "graphBox")
+     .attr("x", 0)
+     .attr("y", 0)
+     .attr("height", h)
+     .attr("width", scatterWidth)
+     .attr("stroke", "#c4c4c4")
+     .attr("stroke-width", 1)
+     .attr("fill", "#ffffff")
+
+  // append circles for each observation
+  svg.selectAll("circle").data(JSONData).enter()
+   .append("svg:circle")
+   .attr("r", 4)
+   .attr("cx", function(d) { return x(dateFn(d)) })
+   .attr("cy", function(d) { return y(amountFn(d)) })
+   .attr("style", "cursor: pointer;")
+   .attr("stroke", function(d) {return colors(d.id)})
+   .on("click", function(d) {
+      d3.select("#demo .value").text("Date: " + d.created_at + " amount: " + d.amount)
+   });
+ 
+  // build legend 
+  var legendDiv = svg.append("g")
+    .attr("class", "legend")
+    .attr("x", w-scatterWidth)
+    .attr("y", h)
+    .attr("height", h)
+    .attr("width", w-scatterWidth);
+
+  var legend = legendDiv.selectAll('.legend')                     
+      .data(data)                                   
+      .enter()                                                
+      .append('g')                                            
+      .attr('class', 'legend')                                
+      .each(function(d, i) {
+        var g = d3.select(this);
+        g.append("svg:circle")
+          .attr("cx", scatterWidth + 24)
+          .attr("cy", 20*i+15)
+          .attr("r", 4)
+          .style("stroke", function(d){return colors(d.id)});
+        
+        g.append("text")
+          .attr("x", scatterWidth + 32)
+          .attr("y", 20*i+20)
+          .attr("height",20)
+          .attr("width",60)
+          .style("fill", "#000000")
+          .text(function(d){return d.id});      
+     });
+
+
+
+})();
+
+</script>
+</html>
