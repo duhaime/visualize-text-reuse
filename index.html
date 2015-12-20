@@ -49,54 +49,76 @@ JSONData = [
   var data = JSONData.slice();
   var colors = d3.scale.category20();
 
-  //Width and height
-  var w = 400;
-  var h = 200;
-  scatterWidth = 300;
+  // width and height
+  var margin = {top: 0, right: 50, left: 50, bottom: 30}   
+  var w = 400 - margin.left - margin.right;
+  var h = 230 - margin.top - margin.bottom;
 
   var x = d3.time.scale()
-    .range([10, 280])
+    .range([15, w-15])
     .domain(d3.extent(data, dateFn))
 
   var y = d3.scale.linear()
-    .range([180, 10])
+    .range([h-15, 15])
     .domain(d3.extent(data, amountFn))
 
   var svg = d3.select("#scatterPlot").append("svg:svg")
-    .attr("width", w) // 300 for plot + room for legend
-    .attr("height", h)
+    .attr("width", w + margin.left + margin.right)
+    .attr("height", h + margin.top + margin.bottom);
 
-// select a subregion of the svg to create a dropbox
+  // select a subregion of the svg to create a dropbox
   var graphBox = svg.append("rect")
      .attr("class", "graphBox")
-     .attr("x", 0)
-     .attr("y", 0)
+     .attr("x", margin.left)
+     .attr("y", margin.top)
      .attr("height", h)
-     .attr("width", scatterWidth)
+     .attr("width", w)
      .attr("stroke", "#c4c4c4")
      .attr("stroke-width", 1)
      .attr("fill", "#ffffff")
 
   // append circles for each observation
   svg.selectAll("circle").data(JSONData).enter()
-   .append("svg:circle")
-   .attr("r", 4)
-   .attr("cx", function(d) { return x(dateFn(d)) })
-   .attr("cy", function(d) { return y(amountFn(d)) })
-   .attr("style", "cursor: pointer;")
-   .attr("stroke", function(d) {return colors(d.id)})
-   .on("click", function(d) {
+    .append("svg:circle")
+    .attr("r", 4)
+    .attr("cx", function(d) { return x(dateFn(d)) + margin.left })
+    .attr("cy", function(d) { return y(amountFn(d)) + margin.top })
+    .attr("style", "cursor: pointer;")
+    .attr("stroke", function(d) {return colors(d.id)})
+    .on("click", function(d) {
       d3.select("#textLeft").text("Date: " + d.created_at + " amount: " + d.amount)
       d3.select("#textRight").text("Date: " + d.created_at)
-   });
+  });
  
+
+  // draw x-axis
+  var xAxis = d3.svg.axis()
+    .scale(x);
+
+  // append x-axis to svg
+  var xAxisGroup = svg.append("g")
+    .attr("class","x axis")
+    .attr("transform", "translate(" + margin.left + "," + h + ")")
+    .call(xAxis);
+  
+  // draw y axis
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+         
+  // append y-axis to svg
+  var yAxisGroup = svg.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + margin.left + ", 0)")
+    .call(yAxis);  
+
   // build legend 
   var legendDiv = svg.append("g")
     .attr("class", "legend")
-    .attr("x", w-scatterWidth)
+    .attr("x", w-margin.left)
     .attr("y", h)
     .attr("height", h)
-    .attr("width", w-scatterWidth);
+    .attr("width", margin.right);
 
   var legend = legendDiv.selectAll('.legend')                     
       .data(data)                                   
@@ -106,21 +128,19 @@ JSONData = [
       .each(function(d, i) {
         var g = d3.select(this);
         g.append("svg:circle")
-          .attr("cx", scatterWidth + 24)
+          .attr("cx", w + margin.left + 24)
           .attr("cy", 20*i+15)
           .attr("r", 4)
           .style("stroke", function(d){return colors(d.id)});
         
         g.append("text")
-          .attr("x", scatterWidth + 32)
+          .attr("x", w + margin.left + 32)
           .attr("y", 20*i+20)
           .attr("height",20)
           .attr("width",60)
           .style("fill", "#000000")
           .text(function(d){return d.id});      
      });
-
-
 
 })();
 
