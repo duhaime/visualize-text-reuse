@@ -162,10 +162,8 @@ def write_dropdown_json(infile_to_id, metadata):
         json.dump(d, dropdown_out)
       
 
-def calculate_similarity(source_id, target_id, source_segment,
+def calculate_similarity(source_path, target_path, source_segment,
     target_segment):
-    source_path = id_to_infile[source_id]
-    target_path = id_to_infile[target_id]
     with codecs.open(source_path,'r','utf-8') as s:
         with codecs.open(target_path,'r','utf-8') as t:    
             s = s.read().split("\n\n")
@@ -186,8 +184,13 @@ def write_similarity_json(knn, nn, labels):
 
     d = defaultdict(list)
     for c in nn.iterkeys():
+        # Retrieve source id, path, and title
+        source_id = int(labels[c])
+        source_path = id_to_infile[source_id]
+        source_title = metadata[os.path.basename(source_path)]["title"]
+
+        # Analyze the source file's nearest neighbors
         for n in nn[c]:
-            source_id = int(labels[c])
             target_id = int(labels[n])
 
             # skip the trivial case where source == target
@@ -197,14 +200,17 @@ def write_similarity_json(knn, nn, labels):
             # Retrieve the decimal portion of number
             source_segment = int( str(labels[c]).split(".")[1] )
             target_segment = int( str(labels[n]).split(".")[1] ) 
-            target_path = os.path.basename(id_to_infile[target_id])
-            target_title = metadata[target_path]["title"]
 
-            sim = calculate_similarity(source_id, target_id,
+            # Retrieve the path and title for the target file
+            target_path = id_to_infile[target_id]
+            target_title = metadata[os.path.basename(target_path)]["title"]
+
+            sim = calculate_similarity(source_path, target_path,
                     source_segment, target_segment)
 
             sim_d = {"sourceId": source_id,
                  "sourceSegment": source_segment, 
+                 "sourceTitle": source_title,
                  "similarId": target_id,
                  "similarSegment": target_segment,
                  "similarTitle": target_title,
