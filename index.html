@@ -70,13 +70,12 @@ var uniquify = function(arr) {
 // function for appending text to the text divs
 var updateText = function(d) { 
   // retrieve source segment
-  console.log(d);
   $.getJSON( "json/segments/segments_" + d.sourceId + ".json", function( data ) {
-    d3.select("#textLeft").text( data[d.sourceSegment] );
+    d3.select("#textLeft").html( data[d.sourceSegment] );
   });
   // retrieve similar segment
   $.getJSON( "json/segments/segments_" + d.similarId + ".json", function( data ) {
-    d3.select("#textRight").text( data[d.similarSegment] );
+    d3.select("#textRight").html( data[d.similarSegment] );
   });
 };
 
