@@ -1,6 +1,7 @@
 from multiprocessing import Pool
 from collections import defaultdict, Counter
 from nltk.util import ngrams
+from difflib import SequenceMatcher
 from annoy import AnnoyIndex
 import numpy, glob, codecs, json, sys, os
 
@@ -22,11 +23,11 @@ def retrieve_metadata(metadata_path):
             sr = r.split("\t")
             if len(sr) < 4:
                 continue 
-            filename, title, year, id, author  = sr              
-            d[id]["filename"] = filename
-            d[id]["title"] = title
-            d[id]["year"] = year
-            d[id]["author"] = author
+            filename, title, year, id, author  = sr               
+            d[filename]["filename"] = filename
+            d[filename]["title"] = title
+            d[filename]["year"] = year
+            d[filename]["author"] = author
     return d 
 
 
@@ -105,6 +106,7 @@ def persist_index(labels, ann_index):
     with open("ann/labels.json",'w') as labels_out:
         json.dump(labels, labels_out)
 
+
 def load_index():
     """Read the labels and ann_index from disk"""
     ann_index.load("ann/trees.ann")
@@ -158,31 +160,63 @@ def write_dropdown_json(infile_to_id, metadata):
             glob_id = root_filename_to_id[filename] 
             d.append({"name":display_title,"id":glob_id})
         json.dump(d, dropdown_out)
-       
+      
+
+def calculate_similarity(source_id, target_id, source_segment,
+    target_segment):
+    source_path = id_to_infile[source_id]
+    target_path = id_to_infile[target_id]
+    with codecs.open(source_path,'r','utf-8') as s:
+        with codecs.open(target_path,'r','utf-8') as t:    
+            s = s.read().split("\n\n")
+            t = t.read().split("\n\n")
+
+            # retrieve the relevant portions of source + target
+            s = s[source_segment]
+            t = t[target_segment]
+            response = SequenceMatcher(None, s, t, autojunk=False) 
+            sim = response.ratio()
+    return sim
+
+
 def write_similarity_json(knn, nn, labels):
     """Write json that documents similarity of file segments"""
-    d = defaultdict(lambda: defaultdict(list))
+    """data model = [{"sourceSeg":0,"similarId":1,"similarTitle":"str",
+    "similarity":.7},{},...]"""
+
+    d = defaultdict(list)
     for c in nn.iterkeys():
         for n in nn[c]:
             source_id = int(labels[c])
             target_id = int(labels[n])
 
-            # Store alignments for each pairwise combination of texts
-            # using the segment index positions to denote location
-            # the following hack returns the decimal portion of number
+            # skip the trivial case where source == target
+            if source_id == target_id:
+                continue
+ 
+            # Retrieve the decimal portion of number
             source_segment = int( str(labels[c]).split(".")[1] )
-            target_segment = int( str(labels[n]).split(".")[1] )
-           
-            d[source_id][target_id].append({"source_segment":source_segment,
-                "target_segment": target_segment})
+            target_segment = int( str(labels[n]).split(".")[1] ) 
+            target_path = os.path.basename(id_to_infile[target_id])
+            target_title = metadata[target_path]["title"]
 
+            sim = calculate_similarity(source_id, target_id,
+                    source_segment, target_segment)
+
+            sim_d = {"sourceSegment": source_segment, 
+                 "similarId": target_id,
+                 "similarSegment": target_segment,
+                 "similarTitle": target_title,
+                 "similarity": sim}
+            
+            d[source_id].append(sim_d)
+   
     out_dir = "../json/alignments/"
     for source_id in d:
-        for target_id in d[source_id]:
-            out_file_root = str(source_id) + "_" + str(target_id) 
-            out_path = out_dir + out_file_root + "_alignments.json"
-            with open(out_path,'w') as alignments_out:
-                json.dump( d[source_id][target_id], alignments_out ) 
+        out_file_root = str(source_id) + "_alignments.json"  
+        out_path = out_dir + out_file_root 
+        with open(out_path,'w') as alignments_out:
+            json.dump( d[source_id], alignments_out ) 
 
 
 def write_segments(infiles):
