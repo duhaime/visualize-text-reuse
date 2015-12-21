@@ -14,8 +14,8 @@
     </div>
     <div id="scatterPlot" style="text-align: center;"></div>
       <div id="textContainer">
-        <p class="textBox">Hint: You can click on the dots.</p>
-        <p class="textBox">Right text.</p>
+        <p class="textBox" id="textLeft">Hint: You can click on the dots.</p>
+        <p class="textBox" id="textRight">Right text.</p>
       </div>
     </div>  
  </body>
@@ -51,9 +51,7 @@ $('#textSelector').change(function () {
 // function that takes as input an array of dicts
 // [{"similarId":0,"title":"A","similarId":"title":"B"}] 
 // and returns an array of dicts that contains only one 
-// observation for each similarId. We do this to 
-// refrain from plotting the same similarId multiple times
-// within the legend
+// observation for each similarId. 
 var uniquify = function(arr) {
   var ids = [];
   var result = [];
@@ -68,6 +66,20 @@ var uniquify = function(arr) {
   arr = result;
   return arr
 };
+
+// function for appending text to the text divs
+var updateText = function(d) { 
+  // retrieve source segment
+  console.log(d);
+  $.getJSON( "json/segments/segments_" + d.sourceId + ".json", function( data ) {
+    d3.select("#textLeft").text( data[d.sourceSegment] );
+  });
+  // retrieve similar segment
+  $.getJSON( "json/segments/segments_" + d.similarId + ".json", function( data ) {
+    d3.select("#textRight").text( data[d.similarSegment] );
+  });
+};
+
  
 // plotting helper functions
 var similarityFn = function(d) { return d.similarity }
@@ -116,9 +128,8 @@ var makeScatterPlot = function(data) {
     .attr("style", "cursor: pointer;")
     .attr("stroke", function(d) {return colors(d.similarId)})
     .on("click", function(d) {
-      d3.select("#textLeft").text("Date: " + d.created_at + " amount: " + d.amount)
-      d3.select("#textRight").text("Date: " + d.created_at)
-  });
+      updateText(d)
+    });
  
   // draw x-axis
   var xAxis = d3.svg.axis()
