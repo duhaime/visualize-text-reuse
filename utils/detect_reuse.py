@@ -47,12 +47,17 @@ def alpha_hashes(alpha):
     return hashes 
 
 
+def get_segments(s):
+    """Read in a string and return an array of segments"""
+    return s.split("\n\n")
+
+
 def make_vectors(f):
     """Return {file_id.sentence_id:vector} for each sentence in f"""
     file_vectors = {}
     file_id = infile_to_id[f]
     with codecs.open(f, 'r', 'utf-8') as f:
-        segments = f.read().split("\n\n")
+        segments = get_segments(f.read())
         for idx, s in enumerate(segments):   
             s = "".join(s for s in s.lower() if s in alpha or s == ' ')
             c = Counter()
@@ -137,7 +142,7 @@ def print_nn(knn, nn):
             file_path = id_to_infile[int(file_id)]
             segment = int(segment_id)
             with codecs.open(file_path,'r','utf-8') as f:
-                print " ".join( f.read().split("\n\n")[segment].split() )
+                print " ".join( get_segments(f.read())[segment].split() )
         print "\n"
 
 
@@ -166,8 +171,8 @@ def calculate_similarity(source_path, target_path, source_segment,
     target_segment):
     with codecs.open(source_path,'r','utf-8') as s:
         with codecs.open(target_path,'r','utf-8') as t:    
-            s = s.read().split("\n\n")
-            t = t.read().split("\n\n")
+            s = get_segments(s.read())
+            t = get_segments(t.read())
 
             # retrieve the relevant portions of source + target
             s = s[source_segment]
@@ -233,7 +238,7 @@ def write_segments(infiles):
         out_file = "segments_" + str(c) + ".json"
         with open(out_dir + out_file, 'w') as segments_out:
             with codecs.open(i, 'r', 'utf-8') as f:
-                segments = f.read().split("\n\n")
+                segments = get_segments(f.read())
                 segments = [s.replace("\n","</br>") for s in segments]
                 json.dump(segments, segments_out)
 
