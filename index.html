@@ -14,8 +14,10 @@
     </div>
     <div id="scatterPlot" style="text-align: center;"></div>
       <div id="textContainer">
-        <p class="textBox" id="textLeft">Hint: You can click on the dots.</p>
-        <p class="textBox" id="textRight">Right text.</p>
+        <div class="textBox"><h4 id="titleLeft"><p style="font-weight:normal;">Hint: You can click on the dots.</p4></h4>
+          <p class="textBox" id="textLeft"></div>
+        <div class="textBox"><h4 id="titleRight"></h4>
+        <p class="textBox" id="textRight"></p>
       </div>
     </div>  
  </body>
@@ -69,6 +71,10 @@ var uniquify = function(arr) {
 
 // function for appending text to the text divs
 var updateText = function(d) { 
+  // append the text titles to the DOM
+  d3.select("#titleLeft").html( d.sourceTitle);
+  d3.select("#titleRight").html( d.similarTitle);
+
   // retrieve source segment
   $.getJSON( "json/segments/segments_" + d.sourceId + ".json", function( data ) {
     d3.select("#textLeft").html( data[d.sourceSegment] );
