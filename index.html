@@ -7,7 +7,7 @@
     <title>Visualizing Text Reuse</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="http://d3js.org/d3.v3.js"></script>
-  </head>
+ </head>
   <body>
     <div id="textSelectorContainer">
       <select id="textSelector"></select>
@@ -32,35 +32,55 @@ $.getJSON( "json/dropdown.json", function( data ) {
 $('#textSelector').change(function () {
   // remove current plot svg
   d3.select("#scatterPlot").select("svg").remove();
-  console.log($(this).val());
-  $.getJSON( "sample.json", function( data ) {
+  var jsonDir = "json/alignments/"; 
+  var jsonFile = $(this).val() + "_alignments.json";
+  var jsonPath = jsonDir + jsonFile
+  $.getJSON( jsonPath, function( data ) {
     var sliced_data = data.slice();
     makeScatterPlot( sliced_data );
   });
 });
 
-
+// function that takes as input an array of dicts
+// [{"similarId":0,"title":"A","similarId":"title":"B"}] 
+// and returns an array of dicts that contains only one 
+// observation for each similarId. We do this to 
+// refrain from plotting the same similarId multiple times
+// within the legend
+var uniquify = function(arr) {
+  var ids = [];
+  var result = [];
+  var indx=-1;
+  for(var i=0; i< arr.length; i++){
+    indx = ids.indexOf(arr[i].similarId);
+    if(indx==-1){
+      ids.push(arr[i].similarId);
+      result.push(arr[i]);
+    }
+  }
+  arr = result;
+  return arr
+};
+ 
 // d3 plot
-var format = d3.time.format("%a %b %d %Y")
-var amountFn = function(d) { return d.amount }
-//var dateFn = function(d) { return format.parse(d.created_at) }
-var dateFn = function(d) { return d.created_at }
+var similarityFn = function(d) { return d.similarity }
+var segmentFn = function(d) { return d.sourceSegment }
 
 var makeScatterPlot = function(data) {
   var colors = d3.scale.category20();
 
   // width and height
-  var margin = {top: 0, right: 50, left: 50, bottom: 30}   
-  var w = 400 - margin.left - margin.right;
+  var margin = {top: 0, right: 400, left: 50, bottom: 30}   
+  var w = 750 - margin.left - margin.right;
   var h = 230 - margin.top - margin.bottom;
 
   var x = d3.scale.linear()
     .range([15, w-15])
-    .domain(d3.extent(data, dateFn))
+    .domain(d3.extent(data, segmentFn))
 
   var y = d3.scale.linear()
     .range([h-15, 15])
-    .domain(d3.extent(data, amountFn))
+    .domain(d3.extent(data, similarityFn))
 
   var svg = d3.select("#scatterPlot").append("svg:svg")
     .attr("width", w + margin.left + margin.right)
@@ -81,19 +101,24 @@ var makeScatterPlot = function(data) {
   svg.selectAll("circle").data(data).enter()
     .append("svg:circle")
     .attr("r", 4)
-    .attr("cx", function(d) { return x(dateFn(d)) + margin.left })
-    .attr("cy", function(d) { return y(amountFn(d)) + margin.top })
+    .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
+    .attr("cy", function(d) { return y(similarityFn(d)) + margin.top })
     .attr("style", "cursor: pointer;")
-    .attr("stroke", function(d) {return colors(d.id)})
+    .attr("stroke", function(d) {return colors(d.similarId)})
     .on("click", function(d) {
       d3.select("#textLeft").text("Date: " + d.created_at + " amount: " + d.amount)
       d3.select("#textRight").text("Date: " + d.created_at)
   });
  
-
   // draw x-axis
   var xAxis = d3.svg.axis()
-    .scale(x);
+    .scale(x)
+    // limit x-axis to integers only
+    .tickFormat(function(e){
+        if(Math.floor(e) != e)
+        { return;}
+        return e;
+    });
 
   // append x-axis to svg
   var xAxisGroup = svg.append("g")
@@ -120,8 +145,11 @@ var makeScatterPlot = function(data) {
     .attr("height", h)
     .attr("width", margin.right);
 
+  // retrieve one observation of each similarId
+  var uniqueIds = uniquify(data);
+
   var legend = legendDiv.selectAll('.legend')                     
-      .data(data)                                   
+      .data(uniqueIds)                                   
       .enter()                                                
       .append('g')                                            
       .attr('class', 'legend')                                
@@ -131,7 +159,7 @@ var makeScatterPlot = function(data) {
           .attr("cx", w + margin.left + 24)
           .attr("cy", 20*i+15)
           .attr("r", 4)
-          .style("stroke", function(d){return colors(d.id)});
+          .style("stroke", function(d){return colors(d.similarId)});
         
         g.append("text")
           .attr("x", w + margin.left + 32)
@@ -139,16 +167,11 @@ var makeScatterPlot = function(data) {
           .attr("height",20)
           .attr("width",60)
           .style("fill", "#000000")
-          .text(function(d){return d.id});      
+          .text(function(d){return d.similarTitle});      
      });
 
 };
 
-// initialize plot via initial json call 
-$.getJSON( "sample.json", function( data ) {
-  var sliced_data = data.slice();
-  makeScatterPlot( sliced_data );
-});
 
 </script>
 </html>
