@@ -203,7 +203,8 @@ def write_similarity_json(knn, nn, labels):
             sim = calculate_similarity(source_id, target_id,
                     source_segment, target_segment)
 
-            sim_d = {"sourceSegment": source_segment, 
+            sim_d = {"sourceId": source_id,
+                 "sourceSegment": source_segment, 
                  "similarId": target_id,
                  "similarSegment": target_segment,
                  "similarTitle": target_title,
