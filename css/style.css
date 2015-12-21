@@ -28,13 +28,7 @@ svg circle:active {
   margin: 0 auto;
 }
 
-#textLeft {
-  width: 400px;
-  height: 400px;
-  float: left;
-}
-
-#textRight {
+.textBox {
   width: 400px;
   height: 400px;
   float: left;
@@ -49,3 +43,6 @@ svg circle:active {
   padding: 10px 0px 30px 0px;
 }
 
+#scatterPlot {
+  height: 230px;
+}
