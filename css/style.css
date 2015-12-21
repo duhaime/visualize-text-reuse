@@ -23,13 +23,13 @@ svg circle:active {
 }
 
 #textContainer {
-  width: 800px;
+  width: 900px;
   height: 400px;
   margin: 0 auto;
 }
 
 .textBox {
-  width: 400px;
+  width: 450px;
   height: 400px;
   float: left;
 }
@@ -45,4 +45,8 @@ svg circle:active {
 
 #scatterPlot {
   height: 230px;
+}
+
+.textBox h4 {
+  -webkit-margin-after: .5em;
 }
