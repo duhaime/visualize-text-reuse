@@ -22,6 +22,12 @@ svg circle:active {
   stroke: #000;
 }
 
+.axisTwo .domain {
+  stroke: #c4c4c4;
+  stroke-width: 1px;
+  fill: none;
+}
+
 #textContainer {
   width: 900px;
   height: 400px;
@@ -44,7 +50,7 @@ svg circle:active {
 }
 
 #scatterPlot {
-  height: 230px;
+  height: 270px;
 }
 
 .textBox h4 {
