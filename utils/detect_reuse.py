@@ -162,6 +162,7 @@ def write_dropdown_json(infile_to_id, metadata):
         for i in metadata:
             filename = metadata[i]["filename"]
             display_title = metadata[i]["title"]
+            pub_year = metadata[i]["year"]
             glob_id = root_filename_to_id[filename] 
             d.append({"name":display_title,"id":glob_id})
         json.dump(d, dropdown_out)
@@ -212,6 +213,9 @@ def write_similarity_json(knn, nn, labels):
 
             sim = calculate_similarity(source_path, target_path,
                     source_segment, target_segment)
+
+            # limit float point precision to compress json
+            sim = "{0:.3f}".format(sim)
 
             sim_d = {"sourceId": source_id,
                  "sourceSegment": source_segment, 
