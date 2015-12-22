@@ -22,7 +22,7 @@ svg circle:active {
   stroke: #000;
 }
 
-.axisTwo .domain {
+.time path {
   stroke: #c4c4c4;
   stroke-width: 1px;
   fill: none;
@@ -50,7 +50,7 @@ svg circle:active {
 }
 
 #scatterPlot {
-  height: 270px;
+  height: 300px;
 }
 
 .textBox h4 {
