@@ -164,7 +164,9 @@ def write_dropdown_json(infile_to_id, metadata):
             display_title = metadata[i]["title"]
             pub_year = metadata[i]["year"]
             glob_id = root_filename_to_id[filename] 
-            d.append({"name":display_title,"id":glob_id})
+            d.append({"name":display_title,
+                "id":glob_id,
+                "year":pub_year})
         json.dump(d, dropdown_out)
       
 
