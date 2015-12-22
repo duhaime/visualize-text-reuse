@@ -82,9 +82,12 @@ var segmentFn = function(d) { return d.sourceSegment }
 var timeFn = function(d) { return d.year }
 
 // width and height
-var margin = {top: 0, right: 400, left: 40, bottom: 25}   
-var w = 750 - margin.left - margin.right;
-var h = 250 - margin.top - margin.bottom;
+var margin = {top: 70, right: 420, left: 70, bottom: 25};   
+var w = 800 - margin.left - margin.right;
+var h = 300 - margin.top - margin.bottom;
+
+// margins for time axis
+var timeMargin = {top:15, right: 0, left: 5, bottom: 0};
 
 var svg = d3.select("#scatterPlot").append("svg:svg")
   .attr("width", w + margin.left + margin.right)
@@ -132,6 +135,23 @@ var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
+// create publication date axis
+var time = d3.scale.linear()
+  .range([15, w+margin.right+margin.left-35]);
+
+// draw publication date axis
+var timeAxis = d3.svg.axis()
+  .scale(time)
+  // format years to remove comma from label
+  .tickFormat(d3.format("d"));
+ 
+// append publication date axis to graph
+var timeAxisGroup = svg.append("g")
+  .attr("class", "time")
+  .attr("transform", "translate(" + 
+      (timeMargin.left) + 
+      "," + (timeMargin.top) + ")");
+
 // use d.similarId + "." + d.similarity as key function
 var dataKey = function(d) {
   return d.sourceId + "." + d.similarId + "." + d.similarity;
@@ -146,34 +166,18 @@ var makeScatterPlot = function(data) {
   // reset text in the textBox
   resetText();
 
-  // create publication date axis
-  var time = d3.scale.linear()
-    .range([15, margin.right-35]);
-
-  // draw publication date axis
-  var timeAxis = d3.svg.axis()
-    .scale(time)
-    // format years to remove comma from label
-    .tickFormat(d3.format("d"))
-    // explicitly create ticks at region beginning and ending
-    .tickValues(d3.extent(dropdownJson, timeFn));
-
-  // append publication date axis to graph
-  var timeAxisGroup = svg.append("g")
-    .attr("class", "axisTwo")
-    .attr("transform", "translate(" + 
-        (margin.right-margin.left) + 
-        "," + (h+margin.top) + ")");
-
   // set domains for x, y, and time
   x.domain(d3.extent(data, segmentFn))
   y.domain(d3.extent(data, similarityFn))
   time.domain(d3.extent(dropdownJson, timeFn));
 
-  // update x and y axes
+  // explicitly create ticks at region beginning and ending 
+  timeAxis.tickValues(d3.extent(dropdownJson, timeFn));
+
+  // update x and y axes and build time axis
   xAxisGroup.call(xAxis); 
   yAxisGroup.call(yAxis);  
-  //timeAxisGroup.call(timeAxis);
+  timeAxisGroup.call(timeAxis);
 
   // specify data with key function
   var circles = svg.selectAll(".scatterPoint").data(data, dataKey);
@@ -208,11 +212,13 @@ var makeScatterPlot = function(data) {
   var uniqueIds = uniquify(data);
 
   var legends = svg.selectAll(".legend").data(uniqueIds, dataKey); 
-  legends.transition(500)
+  var legendsUpdate = d3.transition(legends)
+
+  legendsUpdate.select("g")
     .attr("stroke", function(d) { return colors(d.similarId) })
     .text(function(d){return d.similarTitle});
 
-  legends.enter()                                           
+  var legendsEnter = legends.enter()                        
     .append('g')                                           
     .attr('class', 'legend')                                
     .each(function(d, i) {
@@ -231,5 +237,24 @@ var makeScatterPlot = function(data) {
         .style("fill", "#000000")
         .text(function(d){return d.similarTitle});      
     });
-  legends.exit().remove();
+  var legendsExit = d3.transition(legends.exit())
+    .remove();
+
+  // append circles to time axis
+  var timePoints = svg.selectAll(".timePoint").data(uniqueIds, dataKey);
+  var timePointsUpdate = d3.transition(timePoints)
+
+  timePointsUpdate.select("circle")
+    .attr("cx", function(d) { return time(timeFn(d))});
+    
+  var timePointsEnter = timePoints.enter().insert('svg:circle')
+    .attr('class', 'timePoint')
+    .attr('r', 4)
+    .attr('cx', function(d) { return time(d.similarYear) + timeMargin.left })
+    .attr('cy', function(d) { return timeMargin.top })
+    .attr('stroke', function(d) { return colors(d.similarId) });
+
+  var timePointsExit = d3.transition(timePoints.exit())
+    .remove();
+
 };
