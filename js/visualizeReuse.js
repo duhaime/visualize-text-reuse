@@ -77,9 +77,9 @@ var similarityFn = function(d) { return d.similarity }
 var segmentFn = function(d) { return d.sourceSegment }
 
 // width and height
-var margin = {top: 0, right: 400, left: 50, bottom: 30}   
+var margin = {top: 20, right: 400, left: 40, bottom: 40}   
 var w = 750 - margin.left - margin.right;
-var h = 230 - margin.top - margin.bottom;
+var h = 270 - margin.top - margin.bottom;
 
 var x = d3.scale.linear()
   .range([15, w-15]);
@@ -93,29 +93,29 @@ var svg = d3.select("#scatterPlot").append("svg:svg")
 
 // select a subregion of the svg to create a dropbox
 var graphBox = svg.append("rect")
-   .attr("id", "graphBox")
-   .attr("x", margin.left)
-   .attr("y", margin.top)
-   .attr("height", h)
-   .attr("width", w)
-   .attr("stroke", "#c4c4c4")
-   .attr("stroke-width", 1)
-   .attr("fill", "#ffffff");
+  .attr("id", "graphBox")
+  .attr("x", margin.left)
+  .attr("y", margin.top)
+  .attr("height", h)
+  .attr("width", w)
+  .attr("stroke", "#c4c4c4")
+  .attr("stroke-width", 1)
+  .attr("fill", "#ffffff");
 
 // draw x-axis
 var xAxis = d3.svg.axis()
   .scale(x)
   // limit x-axis to integers only
   .tickFormat(function(e){
-      if(Math.floor(e) != e)
-      { return;}
-      return e;
+     if(Math.floor(e) != e)
+       {return;}
+     return e;
   });
 
 // append x-axis to svg
 var xAxisGroup = svg.append("g")
   .attr("class","x axis")
-  .attr("transform", "translate(" + margin.left + "," + h + ")");
+  .attr("transform", "translate(" + margin.left + "," + (h+margin.top) + ")");
 
 // draw y axis
 var yAxis = d3.svg.axis()
@@ -125,7 +125,16 @@ var yAxis = d3.svg.axis()
 // append y-axis to svg
 var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
-  .attr("transform", "translate(" + margin.left + ", 0)")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+// draw line on which to plot publication dates
+var publicationLine = svg.append("line")
+  .attr("x1", 5)
+  .attr("y1", 5)
+  .attr("x2", 50)
+  .attr("y2", 50)
+  .attr("stroke-width",2)
+  .attr("stroke", "#000000");
 
 // use d.similarId+d.similarity as key function
 var dataKey = function(d) {
@@ -160,9 +169,9 @@ var makeScatterPlot = function(data) {
   circles.enter()
     .append("svg:circle")
     .attr("r", 4)
-    .attr("similarity", function(d) { return d.similarity })
+    .attr("similarity", function(d) { return d.similarity})
     .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
-    .attr("cy", function(d) { return y(similarityFn(d)) })
+    .attr("cy", function(d) { return y(similarityFn(d)) + margin.top })
     .attr("style", "cursor: pointer;")
     .attr("stroke", function(d) {return colors(d.similarId)})
     .on("click", function(d) {
@@ -186,17 +195,17 @@ var makeScatterPlot = function(data) {
       var g = d3.select(this);
       g.append("svg:circle")
         .attr("cx", w + margin.left + 24)
-        .attr("cy", 20*i+15)
+        .attr("cy", 20*i+15 + margin.top)
         .attr("r", 4)
         .style("stroke", function(d){return colors(d.similarId)});
         
       g.append("text")
         .attr("x", w + margin.left + 32)
-        .attr("y", 20*i+20)
+        .attr("y", 20*i + 20 + margin.top)
         .attr("height",20)
         .attr("width",60)
         .style("fill", "#000000")
         .text(function(d){return d.similarTitle});      
-   });
+    });
   legends.exit().remove();
 };
