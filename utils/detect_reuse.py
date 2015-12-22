@@ -187,9 +187,6 @@ def calculate_similarity(source_path, target_path, source_segment,
 
 def write_similarity_json(knn, nn, labels):
     """Write json that documents similarity of file segments"""
-    """data model = [{"sourceSeg":0,"similarId":1,"similarTitle":"str",
-    "similarity":.7},{},...]"""
-
     d = defaultdict(list)
     for c in nn.iterkeys():
         # Retrieve source id, path, and title
@@ -212,6 +209,7 @@ def write_similarity_json(knn, nn, labels):
             # Retrieve the path and title for the target file
             target_path = id_to_infile[target_id]
             target_title = metadata[os.path.basename(target_path)]["title"]
+            target_year = metadata[os.path.basename(target_path)]["year"]
 
             sim = calculate_similarity(source_path, target_path,
                     source_segment, target_segment)
@@ -225,6 +223,7 @@ def write_similarity_json(knn, nn, labels):
                  "similarId": target_id,
                  "similarSegment": target_segment,
                  "similarTitle": target_title,
+                 "similarYear": target_year,
                  "similarity": sim}
             
             d[source_id].append(sim_d)
