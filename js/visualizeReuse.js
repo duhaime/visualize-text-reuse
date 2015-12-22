@@ -14,8 +14,12 @@ var makePlotCall = function(sourceId){
   });
 };  
 
+// pass dropdownJson into global scope;
+var dropdownJson;
+
 // populate dropdown with json options
 $.getJSON( "json/dropdown.json", function( jsonResponse ) {
+  dropdownJson = jsonResponse;
   $.each(jsonResponse, function (key, value) {
     $("#textSelector").append($('<option></option>').val(value.id).html(value.name));
   });
@@ -75,17 +79,12 @@ var resetText = function() {
 // plotting helper functions
 var similarityFn = function(d) { return d.similarity }
 var segmentFn = function(d) { return d.sourceSegment }
+var timeFn = function(d) { return d.year }
 
 // width and height
-var margin = {top: 20, right: 400, left: 40, bottom: 40}   
+var margin = {top: 0, right: 400, left: 40, bottom: 25}   
 var w = 750 - margin.left - margin.right;
-var h = 270 - margin.top - margin.bottom;
-
-var x = d3.scale.linear()
-  .range([15, w-15]);
-
-var y = d3.scale.linear()
-  .range([h-15, 15]);
+var h = 250 - margin.top - margin.bottom;
 
 var svg = d3.select("#scatterPlot").append("svg:svg")
   .attr("width", w + margin.left + margin.right)
@@ -102,6 +101,9 @@ var graphBox = svg.append("rect")
   .attr("stroke-width", 1)
   .attr("fill", "#ffffff");
 
+var x = d3.scale.linear()
+  .range([15, w-15]);
+
 // draw x-axis
 var xAxis = d3.svg.axis()
   .scale(x)
@@ -117,6 +119,9 @@ var xAxisGroup = svg.append("g")
   .attr("class","x axis")
   .attr("transform", "translate(" + margin.left + "," + (h+margin.top) + ")");
 
+var y = d3.scale.linear()
+  .range([h-15, 15]);
+
 // draw y axis
 var yAxis = d3.svg.axis()
   .scale(y)
@@ -127,18 +132,9 @@ var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
-// draw line on which to plot publication dates
-var publicationLine = svg.append("line")
-  .attr("x1", 5)
-  .attr("y1", 5)
-  .attr("x2", 50)
-  .attr("y2", 50)
-  .attr("stroke-width",2)
-  .attr("stroke", "#000000");
-
-// use d.similarId+d.similarity as key function
+// use d.similarId + "." + d.similarity as key function
 var dataKey = function(d) {
-  return d.similarId + d.similarity;
+  return d.sourceId + "." + d.similarId + "." + d.similarity;
 };
 
 // main plotting function
@@ -150,24 +146,51 @@ var makeScatterPlot = function(data) {
   // reset text in the textBox
   resetText();
 
-  // set x and y domains
+  // create publication date axis
+  var time = d3.scale.linear()
+    .range([15, margin.right-35]);
+
+  // draw publication date axis
+  var timeAxis = d3.svg.axis()
+    .scale(time)
+    // format years to remove comma from label
+    .tickFormat(d3.format("d"))
+    // explicitly create ticks at region beginning and ending
+    .tickValues(d3.extent(dropdownJson, timeFn));
+
+  // append publication date axis to graph
+  var timeAxisGroup = svg.append("g")
+    .attr("class", "axisTwo")
+    .attr("transform", "translate(" + 
+        (margin.right-margin.left) + 
+        "," + (h+margin.top) + ")");
+
+  // set domains for x, y, and time
   x.domain(d3.extent(data, segmentFn))
   y.domain(d3.extent(data, similarityFn))
+  time.domain(d3.extent(dropdownJson, timeFn));
 
   // update x and y axes
   xAxisGroup.call(xAxis); 
   yAxisGroup.call(yAxis);  
+  //timeAxisGroup.call(timeAxis);
 
   // specify data with key function
-  var circles = svg.selectAll("circle").data(data, dataKey);
-  circles.transition(500)
+  var circles = svg.selectAll(".scatterPoint").data(data, dataKey);
+  var circlesUpdate = d3.transition(circles)
+
+  circlesUpdate.select("circle")
     .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
     .attr("cy", function(d) { return x(similarityFn(d)) + margin.top })
     .attr("stroke", function(d) {return colors(d.similarId)})
     .attr("class", "scatterPoint")
-
-  circles.enter()
-    .append("svg:circle")
+    .attr("similarId", function(d) { return d.similarId})
+    .attr("similarSegment", function(d) { return d.similarSegment });
+ 
+  var circlesEnter = circles.enter().insert("svg:circle")
+    .attr("class", "scatterPoint")
+    .attr("similarId", function(d) { return d.similarId})
+    .attr("similarSegment", function(d) { return d.similarSegment })
     .attr("r", 4)
     .attr("similarity", function(d) { return d.similarity})
     .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
@@ -178,7 +201,8 @@ var makeScatterPlot = function(data) {
       updateText(d)
     });
  
-  circles.exit().remove();
+  var circlesExit = d3.transition(circles.exit())
+    .remove();
 
   // retrieve one observation of each similarId
   var uniqueIds = uniquify(data);
