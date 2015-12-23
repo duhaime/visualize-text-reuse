@@ -3,6 +3,12 @@
 // /utils/. For more information, see:
 // https://github.com/duhaime/visualizing-text-reuse
 
+// width and height for the scatter plot and time axis
+var margin = {top: 90, right: 420, left: 70, bottom: 40};   
+var timeMargin = {top:45, right: 0, left: 5, bottom: 0};
+var w = 800 - margin.left - margin.right;
+var h = 345 - margin.top - margin.bottom;
+
 // function that makes the plotting call
 var makePlotCall = function(sourceId){
   var jsonDir = "json/alignments/"; 
@@ -51,17 +57,14 @@ var uniquify = function(arr) {
   return arr
 };
 
-// function for appending text to the text divs
+// append selected source and target segments to the DOM
 var updateText = function(d) { 
   // append the text titles to the DOM
   d3.select("#titleLeft").html( d.sourceTitle);
   d3.select("#titleRight").html( d.similarTitle);
-
-  // retrieve source segment
   $.getJSON( "json/segments/segments_" + d.sourceId + ".json", function( jsonResponse ) {
     d3.select("#textLeft").html( jsonResponse[d.sourceSegment] );
   });
-  // retrieve similar segment
   $.getJSON( "json/segments/segments_" + d.similarId + ".json", function( jsonResponse ) {
     d3.select("#textRight").html( jsonResponse[d.similarSegment] );
   });
@@ -81,14 +84,7 @@ var similarityFn = function(d) { return d.similarity }
 var segmentFn = function(d) { return d.sourceSegment }
 var timeFn = function(d) { return d.year }
 
-// width and height
-var margin = {top: 70, right: 420, left: 70, bottom: 25};   
-var w = 800 - margin.left - margin.right;
-var h = 300 - margin.top - margin.bottom;
-
-// margins for time axis
-var timeMargin = {top:15, right: 0, left: 5, bottom: 0};
-
+// draw the svg
 var svg = d3.select("#scatterPlot").append("svg:svg")
   .attr("width", w + margin.left + margin.right)
   .attr("height", h + margin.top + margin.bottom);
@@ -104,10 +100,11 @@ var graphBox = svg.append("rect")
   .attr("stroke-width", 1)
   .attr("fill", "#ffffff");
 
+// specify x axis range
 var x = d3.scale.linear()
   .range([15, w-15]);
 
-// draw x-axis
+// draw x axis
 var xAxis = d3.svg.axis()
   .scale(x)
   // limit x-axis to integers only
@@ -117,11 +114,13 @@ var xAxis = d3.svg.axis()
      return e;
   });
 
-// append x-axis to svg
+// append x axis to DOM
 var xAxisGroup = svg.append("g")
   .attr("class","x axis")
-  .attr("transform", "translate(" + margin.left + "," + (h+margin.top) + ")");
+  .attr("transform", "translate(" + margin.left + 
+    "," + (h+margin.top) + ")");
 
+// specify y axis range
 var y = d3.scale.linear()
   .range([h-15, 15]);
 
@@ -130,29 +129,29 @@ var yAxis = d3.svg.axis()
   .scale(y)
   .orient("left")
          
-// append y-axis to svg
+// append y axis to DOM
 var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
-// create publication date axis
+// specify time axis range
 var time = d3.scale.linear()
   .range([15, w+margin.right+margin.left-35]);
 
-// draw publication date axis
+// draw time axis
 var timeAxis = d3.svg.axis()
   .scale(time)
   // format years to remove comma from label
   .tickFormat(d3.format("d"));
- 
-// append publication date axis to graph
+
+// append time axis to DOM
 var timeAxisGroup = svg.append("g")
   .attr("class", "time")
   .attr("transform", "translate(" + 
       (timeMargin.left) + 
       "," + (timeMargin.top) + ")");
 
-// use d.similarId + "." + d.similarity as key function
+// specify a key function
 var dataKey = function(d) {
   return d.sourceId + "." + d.similarId + "." + d.similarity;
 };
@@ -169,15 +168,14 @@ var makeScatterPlot = function(data) {
   // set domains for x, y, and time
   x.domain(d3.extent(data, segmentFn))
   y.domain(d3.extent(data, similarityFn))
-  time.domain(d3.extent(dropdownJson, timeFn));
-
-  // explicitly create ticks at region beginning and ending 
-  timeAxis.tickValues(d3.extent(dropdownJson, timeFn));
 
   // update x and y axes and build time axis
   xAxisGroup.call(xAxis); 
   yAxisGroup.call(yAxis);  
-  timeAxisGroup.call(timeAxis);
+
+  //////////////////////////
+  // scatterpoint circles //
+  //////////////////////////
 
   // specify data with key function
   var circles = svg.selectAll(".scatterPoint").data(data, dataKey);
@@ -208,6 +206,10 @@ var makeScatterPlot = function(data) {
   var circlesExit = d3.transition(circles.exit())
     .remove();
 
+  //////////////////////////////
+  // legend points and labels //
+  //////////////////////////////
+
   // retrieve one observation of each similarId
   var uniqueIds = uniquify(data);
 
@@ -237,8 +239,30 @@ var makeScatterPlot = function(data) {
         .style("fill", "#000000")
         .text(function(d){return d.similarTitle});      
     });
+
   var legendsExit = d3.transition(legends.exit())
     .remove();
+
+  ///////////////
+  // time axis //
+  ///////////////
+
+  // specify time domain 
+  time.domain(d3.extent(dropdownJson, timeFn));
+
+  // add a date to the time axis for each title being plotted 
+  var yearLabels = [];
+  // first add the boundary labels
+  var bookendYears = d3.extent(dropdownJson, timeFn);
+  for (i=0; i < bookendYears.length; i++) {
+    yearLabels.push(bookendYears[i]);
+  };
+  // add one year label for each plotted point
+  for (i = 0; i < uniqueIds.length; i++) {
+    yearLabels.push(uniqueIds[i].similarYear);
+  };
+  timeAxis.tickValues(yearLabels);
+  timeAxisGroup.call(timeAxis);
 
   // append circles to time axis
   var timePoints = svg.selectAll(".timePoint").data(uniqueIds, dataKey);
@@ -249,12 +273,18 @@ var makeScatterPlot = function(data) {
     
   var timePointsEnter = timePoints.enter().insert('svg:circle')
     .attr('class', 'timePoint')
-    .attr('r', 4)
-    .attr('cx', function(d) { return time(d.similarYear) + timeMargin.left })
+    .attr('r', 4 )
+    .attr('cx', function(d) { return time(d.similarYear) + timeMargin.left})
     .attr('cy', function(d) { return timeMargin.top })
     .attr('stroke', function(d) { return colors(d.similarId) });
 
   var timePointsExit = d3.transition(timePoints.exit())
     .remove();
+
+  // rotate the year labels on the time axis
+  d3.select(".time").selectAll("text")
+    .attr("x", 23)
+    .attr("y", -10)
+    .attr("transform", "rotate(-65)" );
 
 };
