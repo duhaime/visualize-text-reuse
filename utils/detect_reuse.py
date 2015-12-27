@@ -124,18 +124,36 @@ def load_index():
 # ANN methods #
 ###############
 
+def subdivide_list(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
+
+def find_neighbors(c_knn_tuple):
+    """Return the knn for index position c in labels"""
+    c, knn = c_knn_tuple
+    d = {c:[]}
+    nn = ann_index.get_nns_by_item(c, knn)    
+    for n in nn:
+        d[c].append(n)
+    return d
+
+
 def find_nearest_neighbors(labels, ann_index, knn=3):
     """Find the nearest neighbors for all observations"""
-    nn = defaultdict(list)
-    for c, i in enumerate(labels):
-        nearest_neighbors = ann_index.get_nns_by_item(c, knn)        
-        for n in nearest_neighbors:
-            nn[c].append(n)
+    nn = {}
+    pool_two = Pool()
+    index_knn_iterable = ((c, knn) for c in xrange(len(labels)))
+    for result in pool_two.imap(find_neighbors, index_knn_iterable):
+        nn.update(result)
     return knn, nn
 
 
 def print_nn(knn, nn):
     """Print nearest neighbors to terminal"""
+    print nn
+
     for c in nn.iterkeys():
         for n in nn[c]:
             file_id, segment_id = str(labels[n]).split(".")
