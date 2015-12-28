@@ -4,10 +4,10 @@
 // https://github.com/duhaime/visualizing-text-reuse
 
 // width and height for the scatter plot and time axis
-var margin = {top: 90, right: 420, left: 70, bottom: 40};   
+var margin = {top: 90, right: 420, left: 70, bottom: 50};   
 var timeMargin = {top:45, right: 0, left: 5, bottom: 0};
 var w = 800 - margin.left - margin.right;
-var h = 345 - margin.top - margin.bottom;
+var h = 355 - margin.top - margin.bottom;
 
 // function that makes the plotting call
 var makePlotCall = function(sourceId){
@@ -120,6 +120,15 @@ var xAxisGroup = svg.append("g")
   .attr("transform", "translate(" + margin.left + 
     "," + (h+margin.top) + ")");
 
+// add a label to the x axis
+xAxisLabel = svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", w-15)
+    .attr("y", h + margin.top + margin.bottom - 3)
+    .style("font-size","14")
+    .text("Passage in dropdown text");
+
 // specify y axis range
 var y = d3.scale.linear()
   .range([h-15, 15]);
@@ -133,6 +142,17 @@ var yAxis = d3.svg.axis()
 var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+// add a label to the y axis
+svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", 3)
+    .attr("x", -(h+margin.top-10)/2)
+    .attr("dy", ".75em")
+    .style("font-size", "14")
+    .attr("transform", "rotate(-90)")
+    .text("Passage similarity");
 
 // specify time axis range
 var time = d3.scale.linear()
