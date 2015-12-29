@@ -288,7 +288,7 @@ if __name__ == "__main__":
     # build ann index. Increasing num_trees increases precision
     # but also increases runtime
     labels, ann_index = vectorize_files(infiles) 
-    num_trees = 10
+    num_trees = int(len(infiles))
     ann_index.build(num_trees)
   
     # persist ann index and labels, then read them from disk
