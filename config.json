@@ -2,5 +2,5 @@
 "metadata":"../data/metadata/corpus_metadata.tsv",
 "persist_index":0,
 "load_index":0,
-"knn":5,
+"knn":3,
 "print_nn":0}
