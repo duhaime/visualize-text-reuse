@@ -143,7 +143,7 @@ def find_neighbors(c_knn_tuple):
     return d
 
 
-def find_nearest_neighbors(labels, ann_index, knn=3):
+def find_nearest_neighbors(labels, ann_index, knn):
     """Find the nearest neighbors for all observations"""
     nn = {}
     pool_two = Pool()
@@ -153,7 +153,7 @@ def find_nearest_neighbors(labels, ann_index, knn=3):
     pool_two.close()
     pool_two.join()
 
-    return knn, nn
+    return nn
 
 
 def print_nn(knn, nn):
@@ -209,55 +209,79 @@ def calculate_similarity(source_path, target_path, source_segment,
     return sim
 
 
-def write_similarity_json(knn, nn, labels):
+def collect_similarity_json_slave(nn_key):
+    """Write the similarity json for a single nn_key to disk"""
+    similarity_list = []
+
+    source_id = int(labels[nn_key])
+    source_path = id_to_infile[source_id]
+    source_title = metadata[os.path.basename(source_path)]["title"]
+
+    # Analyze the source file's nearest neighbors
+    for n in nn[nn_key]:
+        target_id = int(labels[n])
+
+        # skip the trivial case where source == target
+        if source_id == target_id:
+            continue
+
+        # Retrieve the decimal portion of number
+        source_segment = int( str(labels[nn_key]).split(".")[1] )
+        target_segment = int( str(labels[n]).split(".")[1] )
+
+        # Retrieve the path and title for the target file
+        target_path = id_to_infile[target_id]
+        target_title = metadata[os.path.basename(target_path)]["title"]
+        target_year = metadata[os.path.basename(target_path)]["year"]
+
+        sim = calculate_similarity(source_path, target_path,
+                source_segment, target_segment)
+
+        # limit float point precision to compress json
+        sim = "{0:.3f}".format(sim)
+
+        sim_d = {"sourceId": source_id,
+             "sourceSegment": source_segment,
+             "sourceTitle": source_title,
+             "similarId": target_id,
+             "similarSegment": target_segment,
+             "similarTitle": target_title,
+             "similarYear": target_year,
+             "similarity": sim}
+        similarity_list.append( sim_d )
+
+    return source_id, similarity_list
+
+
+def collect_similarity_json(knn, nn, labels):
     """Write json that documents similarity of file segments"""
     d = defaultdict(list)
-    for c in nn.iterkeys():
-        # Retrieve source id, path, and title
-        source_id = int(labels[c])
-        source_path = id_to_infile[source_id]
-        source_title = metadata[os.path.basename(source_path)]["title"]
+    similarity_pool = Pool()
+    for r in similarity_pool.imap(collect_similarity_json_slave,
+            nn.iterkeys()):
+        source_id, sim_list = r
+        for l in sim_list:
+            d[source_id].append(l)
+    similarity_pool.close()
+    similarity_pool.join()
+    return d
 
-        # Analyze the source file's nearest neighbors
-        for n in nn[c]:
-            target_id = int(labels[n])
 
-            # skip the trivial case where source == target
-            if source_id == target_id:
-                continue
- 
-            # Retrieve the decimal portion of number
-            source_segment = int( str(labels[c]).split(".")[1] )
-            target_segment = int( str(labels[n]).split(".")[1] ) 
-
-            # Retrieve the path and title for the target file
-            target_path = id_to_infile[target_id]
-            target_title = metadata[os.path.basename(target_path)]["title"]
-            target_year = metadata[os.path.basename(target_path)]["year"]
-
-            sim = calculate_similarity(source_path, target_path,
-                    source_segment, target_segment)
-
-            # limit float point precision to compress json
-            sim = "{0:.3f}".format(sim)
-
-            sim_d = {"sourceId": source_id,
-                 "sourceSegment": source_segment, 
-                 "sourceTitle": source_title,
-                 "similarId": target_id,
-                 "similarSegment": target_segment,
-                 "similarTitle": target_title,
-                 "similarYear": target_year,
-                 "similarity": sim}
-            
-            d[source_id].append(sim_d)
-   
+def write_similarity_json_slave(source_id):
+    """Given a source id, write that id's similarity json to disk"""
     out_dir = "../json/alignments/"
-    for source_id in d:
-        out_file_root = str(source_id) + "_alignments.json"  
-        out_path = out_dir + out_file_root 
-        with open(out_path,'w') as alignments_out:
-            json.dump( d[source_id], alignments_out ) 
+    out_file_root = str(source_id) + "_alignments.json"
+    out_path = out_dir + out_file_root
+    with open(out_path,'w') as alignments_out:
+        json.dump( similarity_json_dict[source_id], alignments_out )
+
+
+def write_similarity_json(similarity_keys):
+    """Write the similarity json for each file"""
+    write_similarity_pool = Pool()
+    write_similarity_pool.imap(write_similarity_json_slave, similarity_keys)
+    write_similarity_pool.close()
+    write_similarity_pool.join()
 
 
 def write_segments(infiles):
@@ -278,8 +302,12 @@ def write_segments(infiles):
 
 if __name__ == "__main__":
 
+    # retrieve runtime paramaters
+    with open("../config.json") as f:
+        runtime_params = json.load(f)
+
     # metadata resources
-    metadata_path = "../data/metadata/corpus_metadata.tsv"
+    metadata_path = runtime_params["metadata"]
     metadata = retrieve_metadata(metadata_path)
     
     # alphabetic hash resources
@@ -287,7 +315,7 @@ if __name__ == "__main__":
     hashes = alpha_hashes(alpha)    
 
     # specify files to analyze
-    infiles = glob.glob(sys.argv[1])
+    infiles = glob.glob(runtime_params["infile_glob"])
     infile_to_id = {i:c for c, i in enumerate(infiles)}
     id_to_infile = {c:i for c, i in enumerate(infiles)}
 
@@ -297,19 +325,29 @@ if __name__ == "__main__":
     num_trees = int(len(infiles))
     ann_index.build(num_trees)
   
-    # persist ann index and labels, then read them from disk
-    persist_index(labels, ann_index)
-    labels, ann_index = load_index()
+    # persist ann index and labels or read them from disk
+    if runtime_params["persist_index"] == 1:
+        persist_index(labels, ann_index)
+    if runtime_params["load_index"] == 1:
+        labels, ann_index = load_index()
 
     # find nearest neighbors
-    knn, nn = find_nearest_neighbors(labels, ann_index) 
-    print_nn(knn, nn)
+    knn = runtime_params["knn"]
+    nn = find_nearest_neighbors(labels, ann_index, knn) 
+    
+    # print nn if requested
+    if runtime_params["print_nn"] == 1:
+        print_nn(knn, nn)
 
     # write json to disk for visualization
     if not os.path.exists("../json/alignments"):
         os.makedirs("../json/alignments")
     if not os.path.exists("../json/segments"):
         os.makedirs("../json/segments")
+
+    # write similarity json
+    similarity_json_dict = collect_similarity_json(knn, nn, labels)
+    write_similarity_json(similarity_json_dict.iterkeys())
+
     write_dropdown_json(infile_to_id, metadata)
-    write_similarity_json(knn, nn, labels) 
     write_segments(infiles)
