@@ -143,7 +143,7 @@ def find_neighbors(c_knn_tuple):
     return d
 
 
-def find_nearest_neighbors(labels, ann_index, knn=3):
+def find_nearest_neighbors(labels, ann_index, knn):
     """Find the nearest neighbors for all observations"""
     nn = {}
     pool_two = Pool()
@@ -153,7 +153,7 @@ def find_nearest_neighbors(labels, ann_index, knn=3):
     pool_two.close()
     pool_two.join()
 
-    return knn, nn
+    return nn
 
 
 def print_nn(knn, nn):
@@ -332,7 +332,8 @@ if __name__ == "__main__":
         labels, ann_index = load_index()
 
     # find nearest neighbors
-    knn, nn = find_nearest_neighbors(labels, ann_index) 
+    knn = runtime_params["knn"]
+    nn = find_nearest_neighbors(labels, ann_index, knn) 
     
     # print nn if requested
     if runtime_params["print_nn"] == 1:
