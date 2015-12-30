@@ -26,17 +26,8 @@ var dropdownJson;
 // populate dropdown with json options
 $.getJSON( "json/dropdown.json", function( jsonResponse ) {
   dropdownJson = jsonResponse;
-  $.each(jsonResponse, function (key, value) {
-    $("#textSelector").append($('<option></option>').val(value.id).html(value.name));
-  });
-  // initialize scatterplot
-  makePlotCall( $("#textSelector").val() ); 
 });
 
-// event handler for change of dropdown
-$('#textSelector').change(function () {
-  makePlotCall( $(this).val() );
-});
 
 // function that takes as input an array of dicts
 // [{"similarId":0,"title":"A","similarId":"title":"B"}] 
