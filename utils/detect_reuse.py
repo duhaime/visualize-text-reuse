@@ -95,6 +95,9 @@ def vectorize_files(files):
     for r in df_pool.imap(make_vectors, files):
         character_vectors.append(r)
 
+    df_pool.close()
+    df_pool.join()
+
     labels, ann_index = reduce_df(character_vectors)
     return labels, ann_index
 
@@ -147,6 +150,9 @@ def find_nearest_neighbors(labels, ann_index, knn=3):
     index_knn_iterable = ((c, knn) for c in xrange(len(labels)))
     for result in pool_two.imap(find_neighbors, index_knn_iterable):
         nn.update(result)
+    pool_two.close()
+    pool_two.join()
+
     return knn, nn
 
 
