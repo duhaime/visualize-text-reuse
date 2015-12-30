@@ -278,8 +278,12 @@ def write_segments(infiles):
 
 if __name__ == "__main__":
 
+    # retrieve runtime paramaters
+    with open("../config.json") as f:
+        runtime_params = json.load(f)
+
     # metadata resources
-    metadata_path = "../data/metadata/corpus_metadata.tsv"
+    metadata_path = runtime_params["metadata"]
     metadata = retrieve_metadata(metadata_path)
     
     # alphabetic hash resources
@@ -287,9 +291,11 @@ if __name__ == "__main__":
     hashes = alpha_hashes(alpha)    
 
     # specify files to analyze
-    infiles = glob.glob(sys.argv[1])
+    infiles = glob.glob(runtime_params["infile_glob"])
     infile_to_id = {i:c for c, i in enumerate(infiles)}
     id_to_infile = {c:i for c, i in enumerate(infiles)}
+
+    print infiles
 
     # build ann index. Increasing num_trees increases precision
     # but also increases runtime
@@ -297,13 +303,18 @@ if __name__ == "__main__":
     num_trees = int(len(infiles))
     ann_index.build(num_trees)
   
-    # persist ann index and labels, then read them from disk
-    persist_index(labels, ann_index)
-    labels, ann_index = load_index()
+    # persist ann index and labels or read them from disk
+    if runtime_params["persist_index"] == 1:
+        persist_index(labels, ann_index)
+    if runtime_params["load_index"] == 1:
+        labels, ann_index = load_index()
 
     # find nearest neighbors
     knn, nn = find_nearest_neighbors(labels, ann_index) 
-    print_nn(knn, nn)
+    
+    # print nn if requested
+    if runtime_params["print_nn"] == 1:
+        print_nn(knn, nn)
 
     # write json to disk for visualization
     if not os.path.exists("../json/alignments"):
