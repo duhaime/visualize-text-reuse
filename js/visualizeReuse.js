@@ -28,14 +28,23 @@ $.getJSON( "json/dropdown.json", function( jsonResponse ) {
   dropdownJson = jsonResponse;
 });
 
-
 // function that takes as input an array of dicts
-// [{"similarId":0,"title":"A","similarId":"title":"B"}] 
-// and returns an array of dicts that contains only one 
+// [{"similarId":0,"title":"A"}...] and returns an 
+// array of dicts that contains only one 
 // observation for each similarId. 
 var uniquify = function(arr) {
   var ids = [];
   var result = [];
+
+  // add information on the input text first to ensure
+  // the selected text appears first in the key 
+  if (arr.length > 0) {
+    result.push({"similarYear":arr[0].sourceYear,
+        "similarId":arr[0].sourceId,
+        "similarTitle":arr[0].sourceTitle}
+    );
+  };
+
   var indx=-1;
   for(var i=0; i< arr.length; i++){
     indx = ids.indexOf(arr[i].similarId);
@@ -44,8 +53,8 @@ var uniquify = function(arr) {
       result.push(arr[i]);
     }
   }
-  arr = result;
-  return arr
+
+  return result;
 };
 
 // append selected source and target segments to the DOM
@@ -297,5 +306,4 @@ var makeScatterPlot = function(data) {
     .attr("x", 23)
     .attr("y", -10)
     .attr("transform", "rotate(-65)" );
-
 };
