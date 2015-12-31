@@ -137,7 +137,8 @@ def find_neighbors(c_knn_tuple):
     """Return the knn for index position c in labels"""
     c, knn = c_knn_tuple
     d = {c:[]}
-    nn = ann_index.get_nns_by_item(c, knn)    
+    nn = ann_index.get_nns_by_item(c, knn, 
+        search_k, include_distances=False)    
     for n in nn:
         d[c].append(n)
     return d
@@ -322,8 +323,8 @@ if __name__ == "__main__":
     # build ann index. Increasing num_trees increases precision
     # but also increases runtime
     labels, ann_index = vectorize_files(infiles) 
-    num_trees = runtime_params["n_trees_multiplier"]
-    ann_index.build(num_trees)
+    n_trees = runtime_params["n_trees"]
+    ann_index.build(n_trees)
   
     # persist ann index and labels or read them from disk
     if runtime_params["persist_index"] == 1:
@@ -333,6 +334,7 @@ if __name__ == "__main__":
 
     # find nearest neighbors
     knn = runtime_params["knn"]
+    search_k = runtime_params["search_k"] 
     nn = find_nearest_neighbors(labels, ann_index, knn) 
     
     # print nn if requested
