@@ -11,12 +11,11 @@ var h = 355 - margin.top - margin.bottom;
 
 // function that makes the plotting call
 var makePlotCall = function(sourceId){
-  var jsonDir = "json/alignments/"; 
-  var jsonFile = sourceId + "_alignments.json";
-  var jsonPath = jsonDir + jsonFile
-  $.getJSON( jsonPath, function( jsonResponse ) {
-    var sliced_data = jsonResponse.slice();
-    makeScatterPlot( sliced_data );
+  var alignmentsDir = "json/alignments/"; 
+  var alignmentsFile = sourceId + "_alignments.json";
+  var alignmentsPath = alignmentsDir + alignmentsFile
+  $.getJSON( alignmentsPath, function( jsonResponse ) {
+    makeScatterPlot( jsonResponse.slice() );
   });
 };  
 
