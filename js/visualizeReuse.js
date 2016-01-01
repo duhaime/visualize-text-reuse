@@ -61,10 +61,18 @@ var updateText = function(d) {
   // append the text titles to the DOM
   d3.select("#titleLeft").html( d.sourceTitle);
   d3.select("#titleRight").html( d.similarTitle);
-  $.getJSON( "json/segments/segments_" + d.sourceId + ".json", function( jsonResponse ) {
+  segmentsDir = "json/segments/";
+  sourceSegmentsFile = "segments_" + d.sourceId + ".json";
+  sourceSegmentsPath = segmentsDir + sourceSegmentsFile;
+
+  $.getJSON(sourceSegmentsPath, function( jsonResponse ) {
     d3.select("#textLeft").html( jsonResponse[d.sourceSegment] );
   });
-  $.getJSON( "json/segments/segments_" + d.similarId + ".json", function( jsonResponse ) {
+
+  similarSegmentsFile = "segments_" + d.similarId + ".json";
+  similarSegmentsPath = segmentsDir + similarSegmentsFile;
+
+  $.getJSON(similarSegmentsPath, function( jsonResponse ) {
     d3.select("#textRight").html( jsonResponse[d.similarSegment] );
   });
 };
