@@ -79,7 +79,9 @@ var updateText = function(d) {
 
 // function to reset text upon new json selection
 var resetText = function() { 
-  var hint = '<p style="font-weight:normal;">Hint: You can click on the dots.</p4>'; 
+  var hintPreface = '<p style="font-weight:normal;">';
+  var hintText = 'Hint: You can click on the dots.' 
+  var hint = hintPreface + hintText + '</p4>'; 
   d3.select("#titleLeft").html(hint);
   d3.select("#titleRight").html("");
   d3.select("#textLeft").html("");
