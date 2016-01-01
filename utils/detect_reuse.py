@@ -216,7 +216,9 @@ def collect_similarity_json_slave(nn_key):
 
     source_id = int(labels[nn_key])
     source_path = id_to_infile[source_id]
-    source_title = metadata[os.path.basename(source_path)]["title"]
+    source_root = os.path.basename(source_path)
+    source_title = metadata[source_root]["title"]
+    source_year = metadata[source_root]["year"]
 
     # Analyze the source file's nearest neighbors
     for n in nn[nn_key]:
@@ -232,8 +234,9 @@ def collect_similarity_json_slave(nn_key):
 
         # Retrieve the path and title for the target file
         target_path = id_to_infile[target_id]
-        target_title = metadata[os.path.basename(target_path)]["title"]
-        target_year = metadata[os.path.basename(target_path)]["year"]
+        target_root = os.path.basename(target_path)
+        target_title = metadata[target_root]["title"]
+        target_year = metadata[target_root]["year"]
 
         sim = calculate_similarity(source_path, target_path,
                 source_segment, target_segment)
@@ -244,6 +247,7 @@ def collect_similarity_json_slave(nn_key):
         sim_d = {"sourceId": source_id,
              "sourceSegment": source_segment,
              "sourceTitle": source_title,
+             "sourceYear": source_year,
              "similarId": target_id,
              "similarSegment": target_segment,
              "similarTitle": target_title,
