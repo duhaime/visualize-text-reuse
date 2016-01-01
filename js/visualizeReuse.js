@@ -19,7 +19,6 @@ var makePlotCall = function(sourceId){
   });
 };  
 
-
 // function that takes as input an array of dicts
 // [{"similarId":0,"title":"A"}...] and returns an 
 // array of dicts that contains only one 
@@ -27,7 +26,6 @@ var makePlotCall = function(sourceId){
 var uniquify = function(arr) {
   var ids = [];
   var result = [];
-
   // add information on the input text first to ensure
   // the selected text appears first in the key 
   if (arr.length > 0) {
@@ -36,7 +34,6 @@ var uniquify = function(arr) {
         "similarTitle":arr[0].sourceTitle}
     );
   };
-
   var indx=-1;
   for(var i=0; i< arr.length; i++){
     indx = ids.indexOf(arr[i].similarId);
@@ -45,7 +42,6 @@ var uniquify = function(arr) {
       result.push(arr[i]);
     }
   }
-
   return result;
 };
 
