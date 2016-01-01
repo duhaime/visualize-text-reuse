@@ -5,4 +5,5 @@
 "knn":3,
 "print_nn":0,
 "n_trees":1000,
-"search_k":10000}
+"search_k":10000,
+"maximum_processes":8}
