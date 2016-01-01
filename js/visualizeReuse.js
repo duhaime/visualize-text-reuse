@@ -15,17 +15,10 @@ var makePlotCall = function(sourceId){
   var alignmentsFile = sourceId + "_alignments.json";
   var alignmentsPath = alignmentsDir + alignmentsFile
   $.getJSON( alignmentsPath, function( jsonResponse ) {
-    makeScatterPlot( jsonResponse.slice() );
+    makeScatterPlot( jsonResponse );
   });
 };  
 
-// pass dropdownJson into global scope;
-var dropdownJson;
-
-// populate dropdown with json options
-$.getJSON( "json/dropdown.json", function( jsonResponse ) {
-  dropdownJson = jsonResponse;
-});
 
 // function that takes as input an array of dicts
 // [{"similarId":0,"title":"A"}...] and returns an 
@@ -150,7 +143,8 @@ var yAxis = d3.svg.axis()
 // append y axis to DOM
 var yAxisGroup = svg.append("g")
   .attr("class", "y axis")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+  .attr("transform", "translate(" + margin.left +
+     "," + margin.top + ")")
 
 // add a label to the y axis
 svg.append("text")
@@ -188,6 +182,10 @@ var dataKey = function(d) {
 // main plotting function
 var makeScatterPlot = function(data) {
 
+  // split data into two components
+  bookendYearData = data.bookendYears.slice();
+  alignmentData = data.alignments.slice();
+
   // specify color scheme
   var colors = d3.scale.category20();
 
@@ -195,8 +193,8 @@ var makeScatterPlot = function(data) {
   resetText();
 
   // set domains for x, y, and time
-  x.domain(d3.extent(data, segmentFn))
-  y.domain(d3.extent(data, similarityFn))
+  x.domain(d3.extent(alignmentData, segmentFn))
+  y.domain(d3.extent(alignmentData, similarityFn))
 
   // update x and y axes and build time axis
   xAxisGroup.call(xAxis); 
@@ -207,7 +205,8 @@ var makeScatterPlot = function(data) {
   //////////////////////////
 
   // specify data with key function
-  var circles = svg.selectAll(".scatterPoint").data(data, dataKey);
+  var circles = svg.selectAll(".scatterPoint")
+    .data(alignmentData, dataKey);
   var circlesUpdate = d3.transition(circles)
 
   circlesUpdate.select("circle")
@@ -240,7 +239,7 @@ var makeScatterPlot = function(data) {
   //////////////////////////////
 
   // retrieve one observation of each similarId
-  var uniqueIds = uniquify(data);
+  var uniqueIds = uniquify(alignmentData);
 
   var legends = svg.selectAll(".legend").data(uniqueIds, dataKey); 
   var legendsUpdate = d3.transition(legends)
@@ -277,15 +276,10 @@ var makeScatterPlot = function(data) {
   ///////////////
 
   // specify time domain 
-  time.domain(d3.extent(dropdownJson, timeFn));
+  time.domain(d3.extent(bookendYearData));
 
-  // add a date to the time axis for each title being plotted 
-  var yearLabels = [];
-  // first add the boundary labels
-  var bookendYears = d3.extent(dropdownJson, timeFn);
-  for (i=0; i < bookendYears.length; i++) {
-    yearLabels.push(bookendYears[i]);
-  };
+  // add bookend years to the time axis 
+  var yearLabels = bookendYearData;
   // add one year label for each plotted point
   for (i = 0; i < uniqueIds.length; i++) {
     yearLabels.push(uniqueIds[i].similarYear);
