@@ -63,7 +63,8 @@ def make_vectors(f):
             c = Counter()
             for charGram in ngrams(s, 3): 
                 c[hashes[''.join(charGram)]] += 1 
-            vector = numpy.array( [c[i] for i in xrange(len(hashes))], dtype=numpy.int8)
+            vector = numpy.array( [c[i] for i in 
+                xrange(len(hashes))], dtype=numpy.int8)
             label = float(str(file_id) + "." + str(idx))
             file_vectors[label] = vector
     return file_vectors
@@ -167,7 +168,8 @@ def print_nn(knn, nn):
             file_path = id_to_infile[int(file_id)]
             segment = int(segment_id)
             with codecs.open(file_path,'r','utf-8') as f:
-                print " ".join( get_segments(f.read())[segment].split() )
+                print " ".join( 
+                    get_segments(f.read())[segment].split())
         print "\n"
 
 
