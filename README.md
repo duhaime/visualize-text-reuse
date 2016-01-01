@@ -9,8 +9,9 @@ pip install annoy</code></pre>
 This repository contains utilities for detecting and visualizing text reuse. To get started, run:
 
 <pre><code>git clone https://github.com/duhaime/visualize-text-reuse.git
-cd visualize-text-reuse
-python utils/detect_reuse.py
+cd visualize-text-reuse/utils
+python detect_reuse.py
+cd ../
 python -m SimpleHTTPServer 8000</code></pre>
 
 Then open a browser (Chrome is recommended) and navigate to `localhost:8000` to see the results of the analysis.
