@@ -23,7 +23,7 @@ def retrieve_metadata(metadata_path):
             sr = r.split("\t")
             if len(sr) < 4:
                 continue 
-            filename, title, year, id, author  = sr               
+            filename, title, year, id, author  = sr[:5] 
             d[filename]["filename"] = filename
             d[filename]["title"] = title
             d[filename]["year"] = year
@@ -96,7 +96,7 @@ def reduce_df(results_array):
 
 def vectorize_files(files):
     """Return a matrix where row = doc and col = word class"""
-    df_pool = Pool()
+    df_pool = Pool(maximum_processes)
     character_vectors = []
 
     for r in df_pool.imap(make_vectors, files):
@@ -154,7 +154,7 @@ def find_neighbors(c_knn_tuple):
 def find_nearest_neighbors(labels, ann_index, knn):
     """Find the nearest neighbors for all observations"""
     nn = {}
-    pool_two = Pool()
+    pool_two = Pool(maximum_processes)
     index_knn_iterable = ((c, knn) for c in xrange(len(labels)))
     for result in pool_two.imap(find_neighbors, index_knn_iterable):
         nn.update(result)
@@ -278,7 +278,7 @@ def collect_similarity_json_slave(nn_key):
 def collect_similarity_json(knn, nn, labels):
     """Write json that documents similarity of file segments"""
     d = defaultdict(list)
-    similarity_pool = Pool()
+    similarity_pool = Pool(maximum_processes)
     for r in similarity_pool.imap(collect_similarity_json_slave,
             nn.iterkeys()):
         source_id, sim_list = r
@@ -302,7 +302,7 @@ def write_similarity_json_slave(source_id):
 
 def write_similarity_json(similarity_keys):
     """Write the similarity json for each file"""
-    write_similarity_pool = Pool()
+    write_similarity_pool = Pool(maximum_processes)
     write_similarity_pool.imap(write_similarity_json_slave, similarity_keys)
     write_similarity_pool.close()
     write_similarity_pool.join()
@@ -346,6 +346,7 @@ if __name__ == "__main__":
 
     # build ann index. Increasing num_trees increases precision
     # but also increases runtime
+    maximum_processes = runtime_params["maximum_processes"]
     labels, ann_index = vectorize_files(infiles) 
     n_trees = runtime_params["n_trees"]
     ann_index.build(n_trees)
