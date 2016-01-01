@@ -331,6 +331,7 @@ if __name__ == "__main__":
         runtime_params = json.load(f)
 
     # metadata resources
+    print "retrieving metadata"
     metadata_path = runtime_params["metadata"]
     metadata = retrieve_metadata(metadata_path)
     min_pub_year, max_pub_year = retrieve_bookend_years()   
@@ -340,24 +341,32 @@ if __name__ == "__main__":
     hashes = alpha_hashes(alpha)    
 
     # specify files to analyze
+    print "retrieving files"
     infiles = glob.glob(runtime_params["infile_glob"])
     infile_to_id = {i:c for c, i in enumerate(infiles)}
     id_to_infile = {c:i for c, i in enumerate(infiles)}
 
-    # build ann index. Increasing num_trees increases precision
-    # but also increases runtime
+    # vectorize files
+    print "vectorizing files"
     maximum_processes = runtime_params["maximum_processes"]
     labels, ann_index = vectorize_files(infiles) 
+
+    # build ann index. Increasing num_trees increases precision
+    # but also increases runtime 
+    print "building index"
     n_trees = runtime_params["n_trees"]
     ann_index.build(n_trees)
   
     # persist ann index and labels or read them from disk
     if runtime_params["persist_index"] == 1:
+        print "persisting index"
         persist_index(labels, ann_index)
     if runtime_params["load_index"] == 1:
+        print "loading index"
         labels, ann_index = load_index()
 
     # find nearest neighbors
+    print "finding nearest neighbors"
     knn = runtime_params["knn"]
     search_k = runtime_params["search_k"] 
     nn = find_nearest_neighbors(labels, ann_index, knn) 
@@ -367,6 +376,7 @@ if __name__ == "__main__":
         print_nn(knn, nn)
 
     # write similarity json
+    print "writing json"
     similarity_json_dict = collect_similarity_json(knn, nn, labels)
     write_similarity_json(similarity_json_dict.iterkeys())
 
