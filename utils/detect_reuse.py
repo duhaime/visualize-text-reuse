@@ -31,6 +31,12 @@ def retrieve_metadata(metadata_path):
     return d 
 
 
+def retrieve_bookend_years():
+    """Return the minimum and maximum years within corpus metadata"""
+    min_year = min([metadata[k]["year"] for k in metadata.iterkeys()])
+    max_year = max([metadata[k]["year"] for k in metadata.iterkeys()])
+    return min_year, max_year
+
 ###################
 # Feature methods #
 ###################  
@@ -177,6 +183,16 @@ def print_nn(knn, nn):
 # Visualization methods #
 #########################
 
+def make_dirs():
+    """Make the directories in which json will be written"""
+    if not os.path.exists("../json/alignments"):
+        os.makedirs("../json/alignments")
+    if not os.path.exists("../json/segments"):
+        os.makedirs("../json/segments")
+    if not os.path.exists("../json/legends"):
+        os.makedirs("../json/legends")
+
+
 def write_dropdown_json(infile_to_id, metadata):
     """Write file selector json with file name and glob id"""
     root_filename_to_id = {}
@@ -192,10 +208,9 @@ def write_dropdown_json(infile_to_id, metadata):
             pub_year = metadata[i]["year"]
             glob_id = root_filename_to_id[filename] 
             d.append({"name":display_title,
-                "id":glob_id,
-                "year":pub_year})
+                "id":glob_id})
         json.dump(d, dropdown_out)
-      
+     
 
 def calculate_similarity(source_path, target_path, source_segment,
     target_segment):
@@ -280,7 +295,9 @@ def write_similarity_json_slave(source_id):
     out_file_root = str(source_id) + "_alignments.json"
     out_path = out_dir + out_file_root
     with open(out_path,'w') as alignments_out:
-        json.dump( similarity_json_dict[source_id], alignments_out )
+        json.dump( {"bookendYears":[min_pub_year, max_pub_year],
+            "alignments":similarity_json_dict[source_id]}, 
+            alignments_out )
 
 
 def write_similarity_json(similarity_keys):
@@ -316,7 +333,8 @@ if __name__ == "__main__":
     # metadata resources
     metadata_path = runtime_params["metadata"]
     metadata = retrieve_metadata(metadata_path)
-    
+    min_pub_year, max_pub_year = retrieve_bookend_years()   
+ 
     # alphabetic hash resources
     alpha = "abcdefghijklmnopqrstuvwxyz "
     hashes = alpha_hashes(alpha)    
@@ -346,12 +364,6 @@ if __name__ == "__main__":
     # print nn if requested
     if runtime_params["print_nn"] == 1:
         print_nn(knn, nn)
-
-    # write json to disk for visualization
-    if not os.path.exists("../json/alignments"):
-        os.makedirs("../json/alignments")
-    if not os.path.exists("../json/segments"):
-        os.makedirs("../json/segments")
 
     # write similarity json
     similarity_json_dict = collect_similarity_json(knn, nn, labels)
