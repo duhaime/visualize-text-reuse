@@ -1,0 +1,58 @@
+svg {
+  vertical-align: middle;
+  background: rgba(255,255,255, 0.2);
+}
+
+svg circle {
+  stroke-width: 2px;
+  fill: transparent;
+  cursor: pointer;
+}
+
+svg circle:active {
+  stroke: #45D3C7;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  shape-rendering: crispEdges;
+  stroke: #000;
+}
+
+.time path {
+  stroke: #c4c4c4;
+  stroke-width: 1px;
+  fill: none;
+}
+
+#textContainer {
+  width: 900px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.textBox {
+  width: 450px;
+  height: 400px;
+  float: left;
+}
+
+#textSelector {
+  display: block;
+  margin: 0 auto;
+}
+
+#textSelectorContainer {
+  padding: 10px 0px 25px 0px;
+}
+
+#scatterPlot {
+  height: 355px;
+}
+
+.textBox h4 {
+  -webkit-margin-after: .5em;
+}
