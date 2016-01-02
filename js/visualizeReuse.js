@@ -200,34 +200,43 @@ var makeScatterPlot = function(data) {
   // scatterpoint circles //
   //////////////////////////
 
-  // specify data with key function
+  // perform data join to append new data points
+  // to old data points (if any) 
   var circles = svg.selectAll(".scatterPoint")
     .data(alignmentData, dataKey);
-  var circlesUpdate = d3.transition(circles)
 
-  circlesUpdate.select("circle")
-    .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
-    .attr("cy", function(d) { return x(similarityFn(d)) + margin.top })
-    .attr("stroke", function(d) {return colors(d.similarId)})
-    .attr("class", "scatterPoint")
+  // update: update old data points (if any)
+  circles.attr("class", "update")
+    .transition()
     .attr("similarId", function(d) { return d.similarId})
-    .attr("similarSegment", function(d) { return d.similarSegment });
- 
-  var circlesEnter = circles.enter().insert("svg:circle")
+    .attr("similarSegment", function(d) { return d.similarSegment })
+    .attr("similarity", function(d) { return d.similarity})
+    .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
+    .attr("cy", function(d) { return y(similarityFn(d)) + margin.top })
+    .attr("stroke", function(d) {return colors(d.similarId)});
+
+  // enter: append new data points (if any)
+  circles.enter()
+    .append("circle")
+    .attr("class", "enter")
     .attr("class", "scatterPoint")
     .attr("similarId", function(d) { return d.similarId})
     .attr("similarSegment", function(d) { return d.similarSegment })
     .attr("r", 4)
     .attr("similarity", function(d) { return d.similarity})
-    .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
-    .attr("cy", function(d) { return y(similarityFn(d)) + margin.top })
     .attr("style", "cursor: pointer;")
     .attr("stroke", function(d) {return colors(d.similarId)})
     .on("click", function(d) {
       updateText(d)
-    });
+    })   
+  .transition()
+    .duration(500)
+    .attr("cx", function(d) { return x(segmentFn(d)) + margin.left })
+    .attr("cy", function(d) { return y(similarityFn(d)) + margin.top })
  
-  var circlesExit = d3.transition(circles.exit())
+  // exit: remove unnecessary data points (if any)
+  circles.exit()
+    .attr("class","exit")
     .remove();
 
   //////////////////////////////
@@ -237,16 +246,18 @@ var makeScatterPlot = function(data) {
   // retrieve one observation of each similarId
   var uniqueIds = uniquify(alignmentData);
 
-  var legends = svg.selectAll(".legend").data(uniqueIds, dataKey); 
-  var legendsUpdate = d3.transition(legends)
+  var legends = svg.selectAll(".legend")
+    .data(uniqueIds, dataKey); 
 
-  legendsUpdate.select("g")
+  legends.attr("class", "update")
+    .transition()
     .attr("stroke", function(d) { return colors(d.similarId) })
     .text(function(d){return d.similarTitle});
 
-  var legendsEnter = legends.enter()                        
-    .append('g')                                           
-    .attr('class', 'legend')                                
+  legends.enter()
+    .append('g')
+    .attr("class", "enter")                                           
+    .attr("class", "legend")                                
     .each(function(d, i) {
       var g = d3.select(this);
       g.append("svg:circle")
@@ -264,7 +275,8 @@ var makeScatterPlot = function(data) {
         .text(function(d){return d.similarTitle});      
     });
 
-  var legendsExit = d3.transition(legends.exit())
+  legends.exit()
+    .attr("class","exit")
     .remove();
 
   ///////////////
@@ -284,20 +296,23 @@ var makeScatterPlot = function(data) {
   timeAxisGroup.call(timeAxis);
 
   // append circles to time axis
-  var timePoints = svg.selectAll(".timePoint").data(uniqueIds, dataKey);
-  var timePointsUpdate = d3.transition(timePoints)
+  var timePoints = svg.selectAll(".timePoint")
+    .data(uniqueIds, dataKey);
 
-  timePointsUpdate.select("circle")
-    .attr("cx", function(d) { return time(timeFn(d))});
+  timePoints.attr("class","update")
+   .attr("cx", function(d) { return time(timeFn(d))});
     
-  var timePointsEnter = timePoints.enter().insert('svg:circle')
-    .attr('class', 'timePoint')
+  timePoints.enter()
+    .append("circle")
+    .attr("class","enter")
+    .attr("class","timePoint") 
     .attr('r', 4 )
     .attr('cx', function(d) { return time(d.similarYear) + timeMargin.left})
     .attr('cy', function(d) { return timeMargin.top })
     .attr('stroke', function(d) { return colors(d.similarId) });
 
-  var timePointsExit = d3.transition(timePoints.exit())
+  timePoints.exit()
+    .attr("class","exit")
     .remove();
 
   // rotate the year labels on the time axis
