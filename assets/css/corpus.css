@@ -1,0 +1,50 @@
+/*******************/
+/* buttons styling */
+/*******************/
+
+.btn {
+  width: 70px;
+}
+
+#buttonContainer {
+  padding: 5px 0px 5px 0px;
+}
+
+#buttonContainer p {
+  margin:15px 6px 0px 6px;
+}
+
+#similarityAll {
+  background: #dbdb8d; 
+}
+
+#similarityEarlier {
+  background: #9edae5;
+} 
+
+#similarityLater {
+  background: #ff9896;
+}
+
+/********/
+/* plot */
+/********/
+
+svg circle {
+  stroke-width: 2px;
+  fill: transparent;
+  cursor: pointer;
+}
+
+svg circle:active {
+  stroke: #45D3C7;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  shape-rendering: crispEdges;
+  stroke: #000;
+}

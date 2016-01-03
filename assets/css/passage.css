@@ -40,19 +40,17 @@ svg circle:active {
   float: left;
 }
 
-#textSelector {
-  display: block;
-  margin: 0 auto;
+.textBox h4 {
+  font-size: 14.5px;
+  -webkit-margin-after: .5em;
 }
 
 #textSelectorContainer {
-  padding: 10px 0px 25px 0px;
+  padding: 8px 0px 3px 0px;
 }
 
 #scatterPlot {
-  height: 355px;
+  height: 340px;
+  padding: 0px 0px 15px 0px;
 }
 
-.textBox h4 {
-  -webkit-margin-after: .5em;
-}

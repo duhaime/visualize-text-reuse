@@ -4,10 +4,10 @@
 // https://github.com/duhaime/visualizing-text-reuse
 
 // width and height for the scatter plot and time axis
-var margin = {top: 90, right: 420, left: 70, bottom: 50};   
-var timeMargin = {top:45, right: 0, left: 5, bottom: 0};
+var margin = {top: 70, right: 420, left: 70, bottom: 50};   
+var timeMargin = {top:40, right: 0, left: 5, bottom: 0};
 var w = 800 - margin.left - margin.right;
-var h = 355 - margin.top - margin.bottom;
+var h = 340 - margin.top - margin.bottom;
 
 // function that makes the plotting call
 var makePlotCall = function(sourceId){
@@ -69,9 +69,9 @@ var updateText = function(d) {
 // function to reset text upon new json selection
 var resetText = function() { 
   var hintPreface = '<p style="font-weight:normal;">';
-  var hintText = 'Hint: You can click on the dots.' 
+  var hintText = ''; 
   var hint = hintPreface + hintText + '</p4>'; 
-  d3.select("#titleLeft").html(hint);
+  d3.select("#titleLeft").html("");
   d3.select("#titleRight").html("");
   d3.select("#textLeft").html("");
   d3.select("#textRight").html("");
@@ -80,7 +80,6 @@ var resetText = function() {
 // plotting helper functions
 var similarityFn = function(d) { return d.similarity }
 var segmentFn = function(d) { return d.sourceSegment }
-var timeFn = function(d) { return d.year }
 
 // draw the svg
 var svg = d3.select("#scatterPlot").append("svg:svg")
@@ -123,9 +122,10 @@ xAxisLabel = svg.append("text")
     .attr("class", "x label")
     .attr("text-anchor", "end")
     .attr("x", w-15)
-    .attr("y", h + margin.top + margin.bottom - 3)
-    .style("font-size","14")
-    .text("Passage in dropdown text");
+    .attr("y", h + margin.top + margin.bottom - 9)
+    .style("font-size", "12.5")
+    .style("font-weight", "normal")
+    .text("Passage in selected text");
 
 // specify y axis range
 var y = d3.scale.linear()
@@ -146,10 +146,11 @@ var yAxisGroup = svg.append("g")
 svg.append("text")
     .attr("class", "y label")
     .attr("text-anchor", "end")
-    .attr("y", 3)
+    .attr("y", 8)
     .attr("x", -(h+margin.top-10)/2)
     .attr("dy", ".75em")
-    .style("font-size", "14")
+    .style("font-size", "12.5")
+    .style("font-weight", "normal")
     .attr("transform", "rotate(-90)")
     .text("Passage similarity");
 
@@ -206,8 +207,7 @@ var makeScatterPlot = function(data) {
     .data(alignmentData, dataKey);
 
   // update: update old data points (if any)
-  circles.attr("class", "update")
-    .transition()
+  circles.transition()
     .attr("similarId", function(d) { return d.similarId})
     .attr("similarSegment", function(d) { return d.similarSegment })
     .attr("similarity", function(d) { return d.similarity})
@@ -218,7 +218,6 @@ var makeScatterPlot = function(data) {
   // enter: append new data points (if any)
   circles.enter()
     .append("circle")
-    .attr("class", "enter")
     .attr("class", "scatterPoint")
     .attr("similarId", function(d) { return d.similarId})
     .attr("similarSegment", function(d) { return d.similarSegment })
@@ -236,7 +235,6 @@ var makeScatterPlot = function(data) {
  
   // exit: remove unnecessary data points (if any)
   circles.exit()
-    .attr("class","exit")
     .remove();
 
   //////////////////////////////
@@ -249,14 +247,11 @@ var makeScatterPlot = function(data) {
   var legends = svg.selectAll(".legend")
     .data(uniqueIds, dataKey); 
 
-  legends.attr("class", "update")
-    .transition()
-    .attr("stroke", function(d) { return colors(d.similarId) })
-    .text(function(d){return d.similarTitle});
+  // there's nothing to update
+  legends.transition();
 
   legends.enter()
-    .append('g')
-    .attr("class", "enter")                                           
+    .append('g') 
     .attr("class", "legend")                                
     .each(function(d, i) {
       var g = d3.select(this);
@@ -272,11 +267,10 @@ var makeScatterPlot = function(data) {
         .attr("height",20)
         .attr("width",60)
         .style("fill", "#000000")
-        .text(function(d){return d.similarTitle});      
+        .text(function(d){return d.similarTitle});
     });
 
   legends.exit()
-    .attr("class","exit")
     .remove();
 
   ///////////////
@@ -299,12 +293,11 @@ var makeScatterPlot = function(data) {
   var timePoints = svg.selectAll(".timePoint")
     .data(uniqueIds, dataKey);
 
-  timePoints.attr("class","update")
-   .attr("cx", function(d) { return time(timeFn(d))});
+  timePoints.transition()
+    .attr("cx", function(d) { return time(d.similarYear) + timeMargin.left});
     
   timePoints.enter()
     .append("circle")
-    .attr("class","enter")
     .attr("class","timePoint") 
     .attr('r', 4 )
     .attr('cx', function(d) { return time(d.similarYear) + timeMargin.left})
@@ -312,12 +305,13 @@ var makeScatterPlot = function(data) {
     .attr('stroke', function(d) { return colors(d.similarId) });
 
   timePoints.exit()
-    .attr("class","exit")
     .remove();
 
   // rotate the year labels on the time axis
   d3.select(".time").selectAll("text")
     .attr("x", 23)
     .attr("y", -10)
+    .style("font-size", "12.5")
+    .style("font-weight", "normal")
     .attr("transform", "rotate(-65)" );
 };

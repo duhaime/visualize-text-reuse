@@ -51,9 +51,11 @@ $.getJSON( "json/dropdown.json", function( jsonResponse ) {
 $('#scrollable-dropdown-menu').on(
   {
      'typeahead:selected': function(e, datum) {
-      makePlotCall(datum.id); 
+     console.log(datum.id); 
+     makePlotCall(datum.id); 
    },
      'typeahead:autocompleted': function(e, datum) {
+     console.log(datum.id);
      makePlotCall(datum.id);  
    }
 });

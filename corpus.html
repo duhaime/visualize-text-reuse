@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Visualizing Text Reuse</title>
+    <script src="assets/js/jquery.2.1.3.min.js"></script>
+    <script src="assets/js/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/css/corpus.css"> 
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/application.css">
+  </head>
+  <body>
+    <div id="nav">
+      <a href="/index.html">
+        <img src="assets/img/book.png"/ class="lightscale">
+      </a> 
+      <a href="/corpus.html">
+        <img src="assets/img/books.png"/>
+      </a>
+    </div>
+    <div id="prefaceInfo">
+      <h3 class="center">Document Similarity</h3>
+      <p>The plot below visualizes the similarity between passages within a given document and all other passages in the corpus. The buttons allow one to compare each document to "All" works in the corpus, only those published "Earlier", or only those published "Later" than itself. Taken collectively, these views offers a snapshot of the degree to which individual works derived from earlier works and/or influenced later works.</p>
+    </div>
+    <div id="buttonContainer" class="center">
+      <p><b>Compare each document to</b/></p>
+      <button type="button" class="btn btn-default" 
+          id="similarityAll" autofocus="true">All</button>
+      <button type="button" class="btn btn-default"
+           id="similarityEarlier">Earlier</button>
+      <button type="button" class="btn btn-default"
+           id="similarityLater">Later</button>
+      <p><b>works:</b></p>
+    </div>
+    <div id="corpusPlotContainer" class="center">
+      <div id="corpusPlot"></div>
+    </div>
+    <script src="assets/js/corpus.js"></script>      
+  </body>
+</html>
