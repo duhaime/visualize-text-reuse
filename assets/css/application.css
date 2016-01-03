@@ -37,3 +37,7 @@
   text-decoration: none;
 }
 
+.lightscale {
+  -webkit-filter: opacity(50%); 
+  filter: opacity(50%);
+}
