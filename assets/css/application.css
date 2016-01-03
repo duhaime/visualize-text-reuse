@@ -38,6 +38,6 @@
 }
 
 .lightscale {
-  -webkit-filter: opacity(50%); 
-  filter: opacity(50%);
+  -webkit-filter: opacity(40%); 
+  filter: opacity(40%);
 }
