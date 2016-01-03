@@ -65,7 +65,7 @@ var initializeScatterplot = function() {
     .style("font-size", "12.5")
     .style("font-weight", "normal")
     .attr("transform", "rotate(-90)")
-    .text("Mean similarity to other passages");
+    .text("Mean similarity");
 }
 
 initializeScatterplot();
