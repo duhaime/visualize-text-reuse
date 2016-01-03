@@ -26,7 +26,7 @@ def retrieve_metadata(metadata_path):
             filename, title, year, id, author  = sr[:5] 
             d[filename]["filename"] = filename
             d[filename]["title"] = title
-            d[filename]["year"] = year
+            d[filename]["year"] = int(year)
             d[filename]["author"] = author
     return d 
 
@@ -134,12 +134,6 @@ def load_index():
 # ANN methods #
 ###############
 
-def subdivide_list(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in xrange(0, len(l), n):
-        yield l[i:i+n]
-
-
 def find_neighbors(c_knn_tuple):
     """Return the knn for index position c in labels"""
     c, knn = c_knn_tuple
@@ -189,8 +183,6 @@ def make_dirs():
         os.makedirs("../json/alignments")
     if not os.path.exists("../json/segments"):
         os.makedirs("../json/segments")
-    if not os.path.exists("../json/legends"):
-        os.makedirs("../json/legends")
 
 
 def write_dropdown_json(infile_to_id, metadata):
@@ -228,7 +220,7 @@ def calculate_similarity(source_path, target_path, source_segment,
 
 
 def collect_similarity_json_slave(nn_key):
-    """Write the similarity json for a single nn_key to disk"""
+    """Retrieve the similarity json for a single nn_key"""
     similarity_list = []
 
     source_id = int(labels[nn_key])
@@ -308,6 +300,82 @@ def write_similarity_json(similarity_keys):
     write_similarity_pool.join()
 
 
+def fetch_mean_similarity_values(n_segments, source_id):
+    """Calculate the mean segment similarity for the given file"""
+    relevant_values = defaultdict(lambda: defaultdict(list))
+    source_year = similarity_json_dict[source_id][0]["sourceYear"]
+    source_title = similarity_json_dict[source_id][0]["sourceTitle"]
+ 
+    for alignment in similarity_json_dict[source_id]:
+        source_segment = alignment["sourceSegment"]
+        similar_year = alignment["similarYear"]
+ 
+        # when computing similarity across all segments
+        # don't worry about filtering segments out
+        relevant_values["similarityAll"][source_segment].append(
+            float(alignment["similarity"]) )
+
+        # when analyzing the input text's similarity to earlier or
+        # later texts, only consider relevant alignments
+        if similar_year < source_year:
+             relevant_values["similarityEarlier"][source_segment].append(
+                float(alignment["similarity"]) )
+
+        elif similar_year > source_year:
+            relevant_values["similarityLater"][source_segment].append(
+                float(alignment["similarity"]) )
+
+    # given the relevant values, compute the similarity
+    # for all alignments, earlier alignments, and later alignments
+    influence_json = {}
+    for i in ["similarityAll","similarityEarlier","similarityLater"]:
+        similarity_sum = 0
+        for j in xrange(n_segments):
+            # only use the most similar value for these calculations
+            # try and except because not all segments have alignments
+            # and calling max() on an empty key raises a ValueError
+            try:
+                similarity_sum += max(relevant_values[i][j]) 
+
+            # in the case of value error, explicity add 0 to illustrate
+            # the algorithm logic
+            except ValueError:
+                similarity_sum += 0
+        mean_similarity = similarity_sum/n_segments
+        mean_similarity_formatted = "{0:.3f}".format(mean_similarity)
+        influence_json[i] = mean_similarity_formatted
+
+    # add the source text's title and year to influence json
+    influence_json["title"] = source_title
+    influence_json["year"] = source_year
+    return influence_json
+
+
+def write_influence_json_slave(source_id):
+    """Given a source id, write that id's influence json to disk"""
+    source_path = id_to_infile[source_id]
+    # determine how many segments are in the given source_id file
+    with codecs.open(source_path,'r','utf-8') as f:
+        f = f.read()
+    n_segments = len(get_segments(f))    
+    influence_json = fetch_mean_similarity_values(n_segments, source_id)
+    return influence_json
+
+
+def write_influence_json(similarity_keys):
+    """Write the influence json for each file"""
+    collected_influence = []
+    write_influence_pool = Pool(maximum_processes)
+    for result in write_influence_pool.imap(write_influence_json_slave, 
+        similarity_keys):
+        collected_influence.append(result)
+    write_influence_pool.close()
+    write_influence_pool.join()
+
+    with open("../json/influence.json",'w') as influence_out:
+        json.dump(collected_influence, influence_out)
+
+
 def write_segments(infiles):
     """Write the segments from each file to disk"""
     out_dir = "../json/segments/"
@@ -377,8 +445,9 @@ if __name__ == "__main__":
 
     # write similarity json
     print "writing json"
+    make_dirs()
     similarity_json_dict = collect_similarity_json(knn, nn, labels)
     write_similarity_json(similarity_json_dict.iterkeys())
-
+    write_influence_json(similarity_json_dict.iterkeys())
     write_dropdown_json(infile_to_id, metadata)
     write_segments(infiles)
