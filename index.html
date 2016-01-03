@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="css/singleText.css">
-    <link rel="stylesheet" type="text/css" href="css/typeahead.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/typeahead.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/passage.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/application.css">
     <meta charset="UTF-8">
     <title>Visualizing Text Reuse</title>
-    <script src="js/jquery.2.1.3.min.js"></script>
-    <script src="js/d3.v3.min.js"></script>
-    <script src="js/typeahead.bundle.js"></script>
+    <script src="assets/js/jquery.2.1.3.min.js"></script>
+    <script src="assets/js/d3.v3.min.js"></script>
+    <script src="assets/js/typeahead.bundle.js"></script>
   </head>
   <body>
-    
-    <div id="typeaheadContainer">
-      <div id="scrollable-dropdown-menu">
+    <div id="nav">
+      <a href="/index.html">
+        <img src="assets/img/book.png" style="width: 30px;"/>
+      </a>
+      <a href="/corpus.html">
+        <img src="assets/img/books.png" style="width: 30px;"/>
+      </a>
+    </div>
+    <div id="prefaceInfo">
+      <h3 class="center">Passage Similarity</h3>
+      <p>The plot below visualizes the similarity between passages within the corpus. By using the search box to select a text, one can retrieve the most similar passages for each passage in the selected text. Clicking on the scatterplot circles within the plot displays the compared passages.</p>  
+    </div>  
+    <div id="textSelectorContainer">
+      <div id="scrollable-dropdown-menu" class="center">
         <input class="typeahead" type="text" placeholder="Texts in corpus">
       </div>
     </div>
-
     <div id="scatterPlot" style="text-align: center;"></div>
       <div id="textContainer">
-        <div class="textBox"><h4 id="titleLeft"><p style="font-weight:normal;">Hint: You can click on the dots.</p4></h4>
+        <div class="textBox">
+          <h4 id="titleLeft">
+            <p style="font-weight:normal;">
+            </p>
+          </h4>
           <p class="textBox" id="textLeft"></div>
         <div class="textBox"><h4 id="titleRight"></h4>
         <p class="textBox" id="textRight"></p>
       </div>
     </div>  
   </body>
-  <script src="js/singleText.js"></script>
-  <script src="js/simpleTypeahead.js"></script>
+  <script src="assets/js/passage.js"></script>
+  <script src="assets/js/simpleTypeahead.js"></script>
 </html>
