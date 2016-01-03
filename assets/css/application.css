@@ -1,0 +1,35 @@
+#nav {
+  float:left;
+}
+
+#prefaceInfo {
+  padding: 0% 15% 0% 15%;
+}
+
+.center {
+  width:100%;
+
+  /* Firefox */
+  display:-moz-box;
+  -moz-box-pack:center;
+  -moz-box-align:center;
+
+  /* Safari and Chrome */
+  display:-webkit-box;
+  -webkit-box-pack:center;
+  -webkit-box-align:center;
+
+  /* W3C */
+  display:box;
+  box-pack:center;
+  box-align:center;
+}
+
+#nav {
+  margin: 5px 0px 0px 30px;
+}
+
+#nav a:link {
+  text-decoration: none;
+}
+
