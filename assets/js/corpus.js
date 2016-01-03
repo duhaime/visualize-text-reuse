@@ -1,19 +1,24 @@
 // on click of buttons, call data transition
 $("#similarityAll").click( function() {
-  makeScatterplot(data, "similarityAll");
+  d3.json("json/influence.json", function(error, json) {
+    if (error) return console.warn(error);
+    makeScatterplot(json, "similarityAll");
+  });
 });
 
 $("#similarityEarlier").click( function() {
-  makeScatterplot(data, "similarityEarlier");
+  d3.json("json/influence.json", function(error, json) {
+    if (error) return console.warn(error);
+    makeScatterplot(json, "similarityEarlier");
+  });
 });
 
 $("#similarityLater").click( function() {
-  makeScatterplot(data, "similarityLater");
+  d3.json("json/influence.json", function(error, json) {
+    if (error) return console.warn(error);
+    makeScatterplot(json, "similarityLater");
+  });
 });
-
-var data = [{"year":1700,"similarityAll":.7,"similarityLater":.6,"name":"ale"},
-            {"year":1710,"similarityAll":.8,"similarityLater":.5,"name":"joe"},
-            {"year":1725,"similarityAll":.5,"similarityLater":.32,"name":"cuban"}];
 
 ////////////////////////////
 // initialize scatterplot //
@@ -60,7 +65,7 @@ var initializeScatterplot = function() {
     .style("font-size", "12.5")
     .style("font-weight", "normal")
     .attr("transform", "rotate(-90)")
-    .text("Similarity to other Documents");
+    .text("Mean similarity to other passages");
 }
 
 initializeScatterplot();
@@ -167,7 +172,7 @@ var makeScatterplot = function(data, similarityKey) {
     .on("mouseover", function(d) {
       tooltip.transition()
       .style("opacity", .90);  
-      tooltip.html(d.name) 
+      tooltip.html(d.title) 
         .style("left", (parseInt(d3.select(this).attr("cx")) + 
           document.getElementById("corpusPlot").offsetLeft) + 
           10 + "px")     
@@ -175,7 +180,7 @@ var makeScatterplot = function(data, similarityKey) {
           document.getElementById("corpusPlot").offsetTop) - 
           12 + "px") 
         .style("background-color", '#ffffff')
-        .style("width", getTextWidth(d.name, fontSpec) + 2 + "px")
+        .style("width", getTextWidth(d.title, fontSpec) + 2 + "px")
         .style("height", 15 + "px"); 
       })
     .on("mouseout", function(d) {
@@ -189,12 +194,14 @@ var makeScatterplot = function(data, similarityKey) {
     .attr("cx", function(d) { return x(d.year) + margin.left })
     .attr("cy", function(d) { return y(d[similarityKey]) + margin.top });
 
-
   circles.exit()
     .remove();
  
 };
 
-makeScatterplot(data, "similarityAll");
-
+// initialize scatterplot with "similarityAll" data
+d3.json("json/influence.json", function(error, json) {
+  if (error) return console.warn(error);
+  makeScatterplot(json, "similarityAll");
+});
 
