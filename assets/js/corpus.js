@@ -60,7 +60,7 @@ var initializeScatterplot = function() {
     .attr("class", "y label")
     .attr("text-anchor", "end")
     .attr("y", 3)
-    .attr("x", -((h+margin.top+margin.bottom)/2) +120)
+    .attr("x", -((h+margin.top+margin.bottom)/2) +75)
     .attr("dy", ".75em")
     .style("font-size", "12.5")
     .style("font-weight", "normal")
