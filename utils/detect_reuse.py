@@ -250,6 +250,11 @@ def collect_similarity_json_slave(nn_key):
         sim = calculate_similarity(source_path, target_path,
                 source_segment, target_segment)
 
+        # If the sim isn't larger than the user-specified
+        # minimum_similarity, disregard it and carry on
+        if sim < minimum_similarity:
+            continue
+
         # limit float point precision to compress json
         sim = "{0:.3f}".format(sim)
 
@@ -443,9 +448,11 @@ if __name__ == "__main__":
     if runtime_params["print_nn"] == 1:
         print_nn(knn, nn)
 
-    # write similarity json
+    # write json outfiles
     print "writing json"
     make_dirs()
+
+    minimum_similarity = runtime_params["minimum_similarity"]
     similarity_json_dict = collect_similarity_json(knn, nn, labels)
     write_similarity_json(similarity_json_dict.iterkeys())
     write_influence_json(similarity_json_dict.iterkeys())
