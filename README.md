@@ -50,3 +50,6 @@ One can change the following runtime parameters within `config.json`:
 
 `search_k`: An integer that determines the number of searches to be executed for each nearest neighbor lookup. Increasing this value requires more runtime but improves search precision.  
 
+`maximum_processes`: An integer that indicates the maximum number of processes to be run concurrently.
+
+`minimum_similarity`: {0:1} A float value indicating the minimum similarity an alignment must have in order to be persisted on disk.
